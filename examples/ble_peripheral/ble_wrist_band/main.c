@@ -134,13 +134,15 @@ int main(void)
     // Initialize.
     log_init();
     NRF_LOG_INFO("start main !!!");
+    
     power_management_init();
+    
+    batt_adc_init();
     
     ble_role_init();
     
 //    md_init();
-    batt_adc_init();
-    
+       
     app_init();
 
     cpy_fw();  

@@ -16,10 +16,22 @@
 #define  BATT_AN_PIN            NRF_SAADC_INPUT_AIN0
 #define  ADVALUE_TO_MV_RATIO    600*11/4096
 
-uint8_t                      m_batt_level;
+typedef struct
+{
+    uint16_t adc_value;
+    uint8_t  batt_level;
+    uint8_t  charging_flag:1;
+    uint8_t  adv_data_update_flag:1;
+    uint8_t  batt_low_flag:1;
+    uint8_t  noused:5;
+  
+}batt_state_t ;
+
+batt_state_t  m_battery;
+
 static nrf_saadc_value_t     m_batt_adc_buffer[BATT_SAMPLE_NUM];
 static uint32_t              m_batt_mv_av;
-static bool                  batt_av_saadc_done_flag;
+//static bool                 batt_av_saadc_done_flag;
 
 
 void saadc_callback(nrf_drv_saadc_evt_t const * p_event)
@@ -42,7 +54,7 @@ void saadc_callback(nrf_drv_saadc_evt_t const * p_event)
         }
         batt_sum /= BATT_SAMPLE_NUM;
         m_batt_mv_av = batt_sum*ADVALUE_TO_MV_RATIO;     //Vref=600mv  resolution=12bit  PCB resistor ratio=1/11
-        batt_av_saadc_done_flag = true;
+        //batt_av_saadc_done_flag = true;
         NRF_LOG_INFO("batt adc value: %d \n\r", batt_sum);
         NRF_LOG_INFO("batt voltage : %d mv \n\r", m_batt_mv_av);
     }
@@ -69,6 +81,8 @@ void batt_adc_init(void)
 //    APP_ERROR_CHECK(err_code);
     
     nrfx_saadc_sample();
+    
+    battery_level_cal();
 
 }
 
@@ -125,11 +139,12 @@ int16_t batt_voltage_get(void)
 
 uint8_t battery_level_cal(void)
 {
-    #define MIN_BATTER_ADC  			2048  	//3.3v
-    #define MAX_BATTER_ADC  			2544  	//4.1v
-
+    #define MIN_BATTER_ADC  			100//2048  	//3.3v
+    #define MAX_BATTER_ADC  			900//2544  	//4.1v
+    #define BATT_LOW_POWER_LEVEL        20  //20%
     
     uint32_t  batt_level;
+    static uint8_t   low_power_cnt=0;
     
     int16_t batt_adc_value = batt_adc_value_av_get();
           
@@ -145,17 +160,52 @@ uint8_t battery_level_cal(void)
     {
         batt_level = (batt_adc_value-MIN_BATTER_ADC)*100/(MAX_BATTER_ADC-MIN_BATTER_ADC);
     }
-
-    m_batt_level = batt_level;
+    if(m_battery.batt_level !=batt_level)
+    {
+        m_battery.batt_level = batt_level;
+        m_battery.adv_data_update_flag = 1;
+    }
+    else
+    {
+        m_battery.adv_data_update_flag = 0;
+    }
+    
+    if(batt_level<BATT_LOW_POWER_LEVEL)
+    {
+        if(++low_power_cnt>=2)
+        {
+            m_battery.batt_low_flag = 1;
+        }
+        else
+        {
+            low_power_cnt=0;
+            m_battery.batt_low_flag = 0;
+        }
+    }
     
     NRF_LOG_INFO("batt level: %d  ", batt_level); 
     	
-    return m_batt_level;
+    return batt_level;
 }
 
 uint8_t batt_level_get(void)
 {       
-    return  m_batt_level;
+    return  m_battery.batt_level;
+}
+
+bool batt_low_alert_get(void)
+{       
+    return  m_battery.batt_low_flag;
+}
+
+bool batt_level_changed(void)
+{       
+    return  (m_battery.adv_data_update_flag == 1)||(m_battery.charging_flag==1)||(m_battery.batt_low_flag==1);
+}
+
+void batt_clear_adv_update_flag(void)
+{
+    m_battery.adv_data_update_flag = 0;
 }
 
 

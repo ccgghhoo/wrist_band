@@ -4,8 +4,10 @@
 #include "nordic_common.h"
 #include "nrf.h"
 #include "app_evt.h"
+#include "app_nus.h"
 #include "batt_adc_detect.h"
 #include "DateTime.h"
+
 
 uint32_t  m_app_evt=0;
 
@@ -37,9 +39,16 @@ void app_evt_poll(void)
     if(m_user_time_senconds%60==0)
     {
       battery_level_cal();
-      batt_voltage_get();            
-    }   
+      batt_voltage_get();      
+    }
     
+    if(batt_level_changed())      
+    {       
+       batt_clear_adv_update_flag();
+       update_adv_data();
+    }
+
+     
     //md_motion_or_static_alert_judge();
     
     if(check_app_evt(APP_EVT_DFU_RESET))
@@ -49,7 +58,6 @@ void app_evt_poll(void)
       {
         dfu_reset_cnt=0;
         clear_app_evt(APP_EVT_DFU_RESET);
-//        NRF_LOG_INFO("DFU system reset !!");
         NVIC_SystemReset();
       }
     }                           

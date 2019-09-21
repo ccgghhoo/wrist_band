@@ -55,5 +55,9 @@ uint16_t ble_get_conn_handle(void);
 
 void ble_manual_setup_adv(void); 
 uint16_t GetBLESetLen();
+
+bool ble_is_connected();
+
+void update_adv_data(void);
 #endif 
 

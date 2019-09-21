@@ -34,14 +34,14 @@
 #include "dev_config.get.h"
 #include "dev_config.factory.h"
 #include "crc16.h"
-
+#include "batt_adc_detect.h"
 
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
 #include "nrf_log_default_backends.h"
 
 
-#define DEVICE_NAME                     "eview_band1"                       /**< Name of device. Will be included in the advertising data. */
+#define DEVICE_NAME                     "eview_band0"                       /**< Name of device. Will be included in the advertising data. */
 #define MANUFACTURER_NAME               "eview_tech"                   /**< Manufacturer. Will be passed to Device Information Service. */
 #define APP_ADV_INTERVAL                300                                     /**< The advertising interval (in units of 0.625 ms. This value corresponds to 187.5 ms). */
 #define APP_ADV_INERVAL_CONNECTED       1000
@@ -79,7 +79,7 @@ BLE_ADVERTISING_DEF(m_advertising);                                             
 
 static uint16_t m_conn_handle = BLE_CONN_HANDLE_INVALID;                        /**< Handle of the current connection. */
 
-uint8_t m_adv_manuf_data[11];
+uint8_t m_adv_manuf_data[10];
 
 // YOUR_JOB: Use UUIDs for service(s) used in your application.
 static ble_uuid_t m_adv_uuids[] =                                               /**< Universally unique service identifiers. */
@@ -418,8 +418,8 @@ static void on_adv_evt(ble_adv_evt_t ble_adv_evt)
         case BLE_ADV_EVT_IDLE:
             //sleep_mode_enter();    //power off
           
-            advertising_start();
-            NRF_LOG_INFO("start advertising");
+            //advertising_start();
+            //NRF_LOG_INFO("start advertising");
             
             break;
 
@@ -443,9 +443,11 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
         case BLE_GAP_EVT_DISCONNECTED:
           NRF_LOG_INFO("Disconnected reason:0x%x", p_ble_evt->evt.gap_evt.params.disconnected.reason);
             // LED indication will be changed when advertising starts.
-            sd_ble_gap_adv_stop(m_advertising.adv_handle);
-            advertising_init_2(true);           
-            sd_ble_gap_adv_start(m_advertising.adv_handle, APP_BLE_CONN_CFG_TAG);
+            m_conn_handle = BLE_CONN_HANDLE_INVALID;
+            update_adv_data();
+//            sd_ble_gap_adv_stop(m_advertising.adv_handle);
+//            advertising_init_2(true);           
+//            sd_ble_gap_adv_start(m_advertising.adv_handle, APP_BLE_CONN_CFG_TAG);
             bsp_indication_set(BSP_INDICATE_ADVERTISING);
             break;
 
@@ -457,8 +459,10 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             err_code = nrf_ble_qwr_conn_handle_assign(&m_qwr, m_conn_handle);
             APP_ERROR_CHECK(err_code);
             
-            advertising_init_2(false);
-            sd_ble_gap_adv_start(m_advertising.adv_handle, APP_BLE_CONN_CFG_TAG);
+            update_adv_data();
+            
+//            advertising_init_2(false);
+//            sd_ble_gap_adv_start(m_advertising.adv_handle, APP_BLE_CONN_CFG_TAG);
             break;
 
         case BLE_GAP_EVT_PHY_UPDATE_REQUEST:
@@ -604,6 +608,49 @@ static void buttons_leds_init()
 }
 
 
+
+void  update_adv_data(void)
+{
+  uint8_t adv_data[12];
+  ret_code_t    err_code;
+  
+    adv_data[0] = LSB_16(COMPANY_IDENTIFIER);//company_id >> 0);
+    adv_data[1] = MSB_16(COMPANY_IDENTIFIER);//company_id >> 8);
+    
+    adv_data[2] = 0x01;//version;
+    adv_data[3] = 0x20;//.module_id >> 0);
+    adv_data[4] = 0x19;//.module_id >> 8);
+    adv_data[5] = 0x09;//.module_id >> 16);
+    adv_data[6] = 0x20;//.module_id >> 24);
+    adv_data[7] = batt_level_get();//.battery);
+    
+    uint16_t  states=0;    
+    if(ble_is_connected())
+    {
+       states |= BA_BLE_CONNECTED;
+    }
+    if(batt_low_alert_get())
+    {
+       states |= BA_BATT_LOW;
+    }
+    adv_data[8] = states >> 0;
+    adv_data[9] = states >> 8;
+      
+    uint16_t crc = crc16_compute(adv_data, 10, 0);
+    adv_data[10] = crc ;
+    adv_data[11] = crc >> 8; 
+    
+    memcpy(m_adv_manuf_data, &adv_data[2], 10);
+    err_code=sd_ble_gap_adv_stop(m_advertising.adv_handle);
+     NRF_LOG_INFO("adv stop reslut: %x", err_code);
+    //APP_ERROR_CHECK(err_code);
+    advertising_init_2(!ble_is_connected());
+    
+    err_code=sd_ble_gap_adv_start(m_advertising.adv_handle, APP_BLE_CONN_CFG_TAG);
+    NRF_LOG_INFO("adv start result: %x", err_code);
+    APP_ERROR_CHECK(err_code);
+}
+
 static void advertising_init_2(bool connectable)
 {
     ret_code_t    err_code;
@@ -611,10 +658,6 @@ static void advertising_init_2(bool connectable)
     ble_advdata_t srdata;
     
     ble_advdata_manuf_data_t manuf_data;
-    m_adv_manuf_data[0]=0;
-    m_adv_manuf_data[1]=0;
-    m_adv_manuf_data[2]=0;
-    m_adv_manuf_data[3]=0;
 
     manuf_data.company_identifier = COMPANY_IDENTIFIER;
     manuf_data.data.size          = sizeof(m_adv_manuf_data);
@@ -659,7 +702,7 @@ static void advertising_init_2(bool connectable)
     adv_params.filter_policy   = BLE_GAP_ADV_FP_ANY;
     
     err_code = sd_ble_gap_adv_set_configure(&m_advertising.adv_handle, &m_advertising.adv_data, &adv_params);
-    NRF_LOG_INFO("error code: %x", err_code);
+    NRF_LOG_INFO("adv set up result: %x", err_code);
     APP_ERROR_CHECK(err_code);
 }
 
@@ -673,11 +716,29 @@ static void advertising_init(void)
     memset(&init, 0, sizeof(init));
     
     ble_advdata_manuf_data_t manuf_data;
-    m_adv_manuf_data[0]=0;
-    m_adv_manuf_data[1]=0;
-    m_adv_manuf_data[2]=0;
-    m_adv_manuf_data[3]=0;
-
+    
+    uint8_t adv_data[12];
+  
+    adv_data[0] = LSB_16(COMPANY_IDENTIFIER);//company_id >> 0);
+    adv_data[1] = MSB_16(COMPANY_IDENTIFIER);//company_id >> 8);
+    
+    adv_data[2] = 0x01;//version;
+    adv_data[3] = 0x20;//.module_id >> 0);
+    adv_data[4] = 0x19;//.module_id >> 8);
+    adv_data[5] = 0x09;//.module_id >> 16);
+    adv_data[6] = 0x20;//.module_id >> 24);
+    adv_data[7] = batt_level_get();//.battery);
+    
+    uint16_t  states=0;    
+    adv_data[8] = states >> 0;
+    adv_data[9] = states >> 8;
+      
+    uint16_t crc = crc16_compute(adv_data, 10, 0);
+    adv_data[10] = crc ;
+    adv_data[11] = crc >> 8; 
+    
+    memcpy(m_adv_manuf_data, &adv_data[2], 10);
+    
     manuf_data.company_identifier = COMPANY_IDENTIFIER;
     manuf_data.data.size          = sizeof(m_adv_manuf_data);
     manuf_data.data.p_data        = m_adv_manuf_data;
@@ -694,6 +755,8 @@ static void advertising_init(void)
     init.config.ble_adv_fast_timeout  = APP_ADV_DURATION;
 
     init.evt_handler = on_adv_evt;
+    
+    
 
     err_code = ble_advertising_init(&m_advertising, &init);
     APP_ERROR_CHECK(err_code);
@@ -766,6 +829,9 @@ void ble_role_init(void)
     peer_manager_init();
                
     application_timers_start();
+    
+    //update_adv_data();
+    
     advertising_start();
     
     
