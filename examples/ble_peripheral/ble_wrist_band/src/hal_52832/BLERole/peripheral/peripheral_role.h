@@ -39,6 +39,11 @@ typedef struct{
     
 }bl_user_data_t; 
 
+
+extern uint16_t             m_ble_nus_max_data_len;
+
+
+
 void ble_slow_connection(void);
 
 void ble_fast_connection(void);
@@ -59,5 +64,8 @@ uint16_t GetBLESetLen();
 bool ble_is_connected();
 
 void update_adv_data(void);
+
+void buttons_leds_init(void);
+void timers_init(void);
 #endif 
 

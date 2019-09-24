@@ -20,6 +20,7 @@ uint8_t batt_level_get(void);
 
 bool batt_level_changed(void);
 void batt_clear_adv_update_flag(void);
+bool batt_low_alert_get(void);
 
 #endif /* */
 

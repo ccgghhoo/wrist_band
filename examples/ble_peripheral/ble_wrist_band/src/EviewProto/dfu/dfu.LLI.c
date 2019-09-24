@@ -23,7 +23,7 @@ static objDFU_t *pObj;
 
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
-#if 1
+#if 0
   #define DFU_LOG       NRF_LOG_INFO
 #else
   #define DFU_LOG(...)

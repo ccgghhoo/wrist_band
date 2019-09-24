@@ -488,12 +488,9 @@ static void md_algorithm_run(void)
             rawcurrent.X = r3.X;
             rawcurrent.Y = r3.Y;
             rawcurrent.Z = r3.Z;
-            //MD_LOG("[MD]: x=%d,y=%d,z=%d\r\n", r3.X, r3.Y, r3.Z);
             m_interface_input_gsensor_source_data(rawcurrent);  //step cnt 
         }
-
-//        void state_input_data(int16_t x, int16_t y, int16_t z);
-
+        
         state_input_data(r3.X, r3.Y, r3.Z);
         //falldown and tilt check
         bool device_is_activated = false;
@@ -505,7 +502,8 @@ static void md_algorithm_run(void)
         device_is_activated = IsKeeprelative(active_value);  //chen --for static or motion detect
         algo_lib_runtime(&r3, device_is_activated);
 
-        //call the math file.
+
+#if 0        
         if (true == tilt_get_switch())
         {
             tilt_moudle_gsensor_data_handler(&r3, true); //
@@ -520,29 +518,14 @@ static void md_algorithm_run(void)
             uint16_t zz = SHORT_ABS(r3.Z);
             uint32_t Raw_input_data = (uint32_t)(xx * xx + yy * yy + zz * zz);
             Raw_input_data = (uint32_t)inv_sqrt((float)Raw_input_data);
-
-            //MD_LOG("[MD]: falldown inuput = %d  \r\n",Raw_input_data );
             float Fall_current_accel = Raw_input_data * 1.0 / 512;           
             fall_detector_state_handler(Fall_current_accel, device_is_activated);
         }
+#endif
+        
     }
     
-    
-//    if(bytes_in_fifo<5)  //static=2  active=20
-//    {
-//        md.static_detct_cnt++;
-//        if(md.static_detct_cnt>5*dev_config_get_alert_actionless_threshold() /*&& md.static_detct_cnt>5*60*/)//
-//        //if(md.static_detct_cnt>5*30)//
-//        {            
-//            md.static_flag = 1;  
-//            md.static_detct_cnt=0;    
-//            md_start_sleep();
-//        }
-//    }
-//    else 
-//    {
-//        md.static_detct_cnt = 0;
-//    }        
+          
     
     if (algo_lib_stay_in_quiet() && md.static_flag==0)
     {             
@@ -611,7 +594,7 @@ void md_conf_change_on_falldown(void)
 
 void dev_config_value_change(uint32_t conf_update)
 {
-    int32_t ret = 0;
+   
 
     switch (conf_update)
     {
@@ -641,23 +624,25 @@ void md_init(void)
 {
     memset(&md, 0, sizeof(md));
     
-    //dev_conf_reset_to_factory();  //chen 2019/06/25    
-    dev_conf_init_t  dev_conf_obj;
-    dev_conf_obj.cb = dev_config_value_change;    
-    dev_conf_init(&dev_conf_obj);
+    
+    LIS3DH_INT_PIN_init();
+    LIS3DH_SpiInit();
+//    dev_conf_init_t  dev_conf_obj;
+//    dev_conf_obj.cb = dev_config_value_change;    
+//    dev_conf_init(&dev_conf_obj);
 
     // init mems
 //    lis3dh_init_t   lis3dh_init_obj;
 //    lis3dh_init_obj.evt_handle = md_wakeup;
 //    lis3dh_init(&lis3dh_init_obj);
     
-    md__int_pin_init();  // 2019/07/11
+//    md__int_pin_init();  // 2019/07/11
     
     // register algorithm evt callback
     algo_init_t     algo_init_obj;
 
-    algo_init_obj.cfg.orient.enable = true;
-    algo_init_obj.cfg.falldown.enable = true;
+    algo_init_obj.cfg.orient.enable = false;
+    algo_init_obj.cfg.falldown.enable = false;
 
     algo_init_obj.evt.cb = md_evt_handler;
     algo_init_obj.evt.orient = md_orient_change_handler;
@@ -678,7 +663,7 @@ void md_init(void)
 //    dev_config_value_change(DEV_UPDATE_ALERT_STATIC);
 //    dev_config_value_change(DEV_UPDATE_ALERT_TILT);
 //    dev_config_value_change(DEV_UPDATE_ALERT_FALLDOWN);
-    algo_lib_param_update();   //set default falldown param
+//    algo_lib_param_update();   //set default falldown param
 
 }
 

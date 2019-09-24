@@ -19,7 +19,7 @@
 #include "nrf_log_default_backends.h"
 
 
-static  uint32_t 				m_flash_in_used_count ; 
+//static  uint32_t 				m_flash_in_used_count ; 
 static  uint32_t                m_write_flash_result = 0; 
 
 

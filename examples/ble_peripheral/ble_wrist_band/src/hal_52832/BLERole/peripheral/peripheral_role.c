@@ -41,7 +41,7 @@
 #include "nrf_log_default_backends.h"
 
 
-#define DEVICE_NAME                     "eview_band0"                       /**< Name of device. Will be included in the advertising data. */
+#define DEVICE_NAME                     "eview_band2"                       /**< Name of device. Will be included in the advertising data. */
 #define MANUFACTURER_NAME               "eview_tech"                   /**< Manufacturer. Will be passed to Device Information Service. */
 #define APP_ADV_INTERVAL                300                                     /**< The advertising interval (in units of 0.625 ms. This value corresponds to 187.5 ms). */
 #define APP_ADV_INERVAL_CONNECTED       1000
@@ -186,7 +186,7 @@ static void pm_evt_handler(pm_evt_t const * p_evt)
  *
  * @details Initializes the timer module. This creates and starts application timers.
  */
-static void timers_init(void)
+void timers_init(void)
 {
     // Initialize timer module.
     ret_code_t err_code = app_timer_init();
@@ -580,10 +580,11 @@ static void bsp_event_handler(bsp_event_t event)
         case BSP_EVENT_SOS:
           
             NRF_LOG_INFO("button pressed long time, SOS!!");
-            uint8_t *string="button pressed long time, SOS!!";
-            uint16_t len=strlen(string);
-            uint32_t reslt=app_nus_send_data(string, &len);
-            NRF_LOG_INFO("send data reslut:%d",reslt);
+//            uint8_t string[]="button pressed long time, SOS!!";
+//            uint16_t len=strlen(string);
+//            //uint32_t reslt=app_nus_send_data(string, &len);
+//            ble_send_proto_data_pack(string, len, 0);
+            ble_sos_key_send();
             break; // 
 
         default:
@@ -595,7 +596,7 @@ static void bsp_event_handler(bsp_event_t event)
  *
  * @param[out] p_erase_bonds  Will be true if the clear bonding button was pressed to wake the application up.
  */
-static void buttons_leds_init()
+void buttons_leds_init(void)
 {
     ret_code_t err_code;
 
@@ -629,8 +630,10 @@ void  update_adv_data(void)
     {
        states |= BA_BLE_CONNECTED;
     }
+
     if(batt_low_alert_get())
     {
+       NRF_LOG_INFO("battery low!!!");
        states |= BA_BATT_LOW;
     }
     adv_data[8] = states >> 0;
@@ -642,12 +645,12 @@ void  update_adv_data(void)
     
     memcpy(m_adv_manuf_data, &adv_data[2], 10);
     err_code=sd_ble_gap_adv_stop(m_advertising.adv_handle);
-     NRF_LOG_INFO("adv stop reslut: %x", err_code);
+     //NRF_LOG_INFO("adv stop reslut: %x", err_code);
     //APP_ERROR_CHECK(err_code);
     advertising_init_2(!ble_is_connected());
     
     err_code=sd_ble_gap_adv_start(m_advertising.adv_handle, APP_BLE_CONN_CFG_TAG);
-    NRF_LOG_INFO("adv start result: %x", err_code);
+    //NRF_LOG_INFO("adv start result: %x", err_code);
     APP_ERROR_CHECK(err_code);
 }
 
@@ -702,7 +705,7 @@ static void advertising_init_2(bool connectable)
     adv_params.filter_policy   = BLE_GAP_ADV_FP_ANY;
     
     err_code = sd_ble_gap_adv_set_configure(&m_advertising.adv_handle, &m_advertising.adv_data, &adv_params);
-    NRF_LOG_INFO("adv set up result: %x", err_code);
+    //NRF_LOG_INFO("adv set up result: %x", err_code);
     APP_ERROR_CHECK(err_code);
 }
 
@@ -813,11 +816,10 @@ static void bl_radio_init(void)
 }
 
 
-
 void ble_role_init(void)
 {
-    timers_init();
-    buttons_leds_init();
+//    timers_init();
+//    buttons_leds_init();
     
     ble_stack_init();
     //bl_radio_init();   //ÊÇ·ñÐèÒª
@@ -828,10 +830,8 @@ void ble_role_init(void)
     conn_params_init();
     peer_manager_init();
                
-    application_timers_start();
-    
-    //update_adv_data();
-    
+//    application_timers_start();
+       
     advertising_start();
     
     

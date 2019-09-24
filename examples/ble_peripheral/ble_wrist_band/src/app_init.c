@@ -6,6 +6,10 @@
 #include "nrf_delay.h"
 #include "app_evt.h"
 #include "DateTime.h"
+#include "app_motion_detect.h"
+#include "peripheral_role.h"
+#include "batt_adc_detect.h"   
+
 
 
 int32_t DeviceReset_CallBack()
@@ -25,13 +29,26 @@ void  app_proto_init(void)
 
 void  hal_init(void)
 {
+    timers_init();
+    buttons_leds_init();
+   
 	DateTime_Init();
+    md_init();
+    batt_adc_init();
+    
+    
 }
 
 
 
 void  app_init(void)
-{
-	app_proto_init();
-	 hal_init();
+{  
+     hal_init();
+     
+     ble_role_init();
+     
+	 app_proto_init();
+	 
+     
+     
 }

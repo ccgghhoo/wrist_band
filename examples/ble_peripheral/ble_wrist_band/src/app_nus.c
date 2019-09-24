@@ -10,7 +10,7 @@
 
 #include "app_error.h"
 #include "app_nus.h"
-
+#include "crc16.h"
 
 //#include "DateTime.h"
 #include "LibHeap.h"
@@ -21,8 +21,9 @@
 #include "Proto.h"
 #include "dfu.h"
 #include "app_flash_drv.h"
+#include "nrf_delay.h"
 
-#if 0
+#if 1
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
 #define NUS_LOG			NRF_LOG_INFO
@@ -109,18 +110,17 @@ void app_nus_res_handler(void)
 
     if (m_has_data_to_send)
     {
-        ble_fast_connection(); 
+        //ble_fast_connection(); 
         while (m_tx_offset  < m_tx_in_used.size)
         {
             // get bytes_to_send
             uint16_t bytes_to_send = m_tx_in_used.size - m_tx_offset;
-            if (bytes_to_send > 20) bytes_to_send = 20;
+            if (bytes_to_send > m_ble_nus_max_data_len) bytes_to_send = m_ble_nus_max_data_len;
 
             // transfer to BLE stack
             err_code = ble_nus_data_send(&m_ble_nus, m_tx_in_used.p_data + m_tx_offset, &bytes_to_send, ble_get_conn_handle());
             if (err_code == NRF_SUCCESS) // send success
-            {
-
+            {              
                 m_tx_offset += bytes_to_send; // send OK
                 if (m_tx_offset >= m_tx_in_used.size) // completed
                 {
@@ -338,4 +338,67 @@ bool BLE_IsConnect()
     extern bool ble_is_connected(void);
     return ble_is_connected();
 }
+
+
+void ble_send_proto_data_pack(uint8_t *data, uint16_t len, uint8_t flag)
+{
+    if (BLE_IsConnect() == false)
+    {        
+        NUS_LOG("[NUS]:ble disconnected, send data fail!\r\n");
+        return;
+    }
+    
+    uint8_t *data_buff = (uint8_t *)APP_MALLOC(PROTO_PACK_DATA_PACK, len + 8);
+
+    if (data_buff == NULL)
+    {
+        NUS_LOG("[NUS]: no more buffer \r\n ");
+        return;
+    }
+ 	        
+	msg_packet_t 	respHead; 
+	respHead.magic	= MAGIC_NUMBER; 
+	respHead.len	= len; 
+	respHead.val	= flag;       
+    respHead.id		= 0; 	
+               		
+	if( len > 0){			
+		uint16_t crc16 = crc16_compute( data, len, 0); 
+		respHead.crc = crc16; 
+	}else{
+		respHead.crc = 0; 
+	}
+	
+	memcpy( data_buff, (uint8_t*)&respHead, 8); 
+	memcpy( data_buff + 8, data, len); 
+    
+    {
+        m_tx_in_used.p_data = data_buff;
+        m_tx_in_used.size = len+8;
+        m_has_data_to_send = true;
+        m_tx_offset = 0;
+    }
+        
+}
+
+
+void ble_sos_key_send(void)
+{
+    uint8_t  databuff[10];
+    
+    databuff[0]=COMMAND_ID_DATA;
+    databuff[1]= 5;
+    databuff[2]=DATA_KEY_ALARM_CODE;
+    uint32_t temp32=0;
+    temp32 |= 1<<12; //SOS KEY BIT
+    memcpy(&databuff[3], (uint8_t *)&temp32, sizeof(uint32_t));
+    
+    
+    ble_send_proto_data_pack(databuff, 7, 0);   
+  
+}
+
+
+
+
 

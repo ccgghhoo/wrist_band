@@ -27,9 +27,12 @@
 #include "nrf_drv_spi.h"
 #include "app_util_platform.h"
 #include "nrf_gpio.h"
+#include "nrf_drv_gpiote.h"
 #include "nrf_delay.h"
 #include "boards.h"
 #include "app_error.h"
+#include "app_motion_detect.h"
+
 #include <string.h>
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
@@ -43,7 +46,7 @@ static volatile bool spi_xfer_done;  /**< Flag used to indicate that SPI instanc
 
 static uint8_t       m_tx_buf[8];      /**< TX buffer. */
 static uint8_t       m_rx_buf[8];      /**< RX buffer. */
-static uint8_t       m_length ;        /**< Transfer length. */
+//static uint8_t       m_length ;        /**< Transfer length. */
 AxesRaw_t            m_lis3dh_acc_data;
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -158,17 +161,6 @@ void LIS3DH_SpiInit(void) {
 
 }
 
-/*******************************************************************************
-* Function Name  : LIS3DH_SPI_SendByte
-* Description    : Sends a Byte through the SPI interface and return the
-*                  Byte received from the SPI bus.
-* Input          : Byte : Byte send.
-* Output         : None
-* Return         : The received byte value
-*******************************************************************************/
-unsigned char LIS3DH_SPI_SendByte(unsigned char byte)
-{
-}
 
 /*******************************************************************************
 * Function Name     : LIS3DH_ReadReg
@@ -201,19 +193,6 @@ uint8_t LIS3DH_ReadReg(uint8_t Reg, uint8_t* recData) {
   }      
   
 }
-
-/*
-uint8_t LIS3DH_Read_Regs(uint8_t Reg, uint8_t* recData, uint8_t recLen) {
-    
-  Reg |= 0x80;
-  
-//  m_tx_buf[0]=reg;
-  
-  APP_ERROR_CHECK(nrf_drv_spi_transfer(&spi, &reg, 1, recData, recLen));
-   
-  return MEMS_SUCCESS;
-}
-*/
 
 
 /*******************************************************************************

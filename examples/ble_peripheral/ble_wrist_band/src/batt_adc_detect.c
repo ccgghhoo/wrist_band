@@ -6,14 +6,14 @@
 #include "nrf_saadc.h"
 #include "nrfx_saadc.h"
 #include "nrf_drv_saadc.h"
+#include "nrf_gpio.h"
+
 #include "batt_adc_detect.h"
 #include "nrf_log.h"
-//#include "nrf_log_ctrl.h"
-//#include "nrf_log_default_backends.h"
 
 
 #define  BATT_SAMPLE_NUM        8
-#define  BATT_AN_PIN            NRF_SAADC_INPUT_AIN0
+#define  BATT_AN_PIN            NRF_SAADC_INPUT_AIN3
 #define  ADVALUE_TO_MV_RATIO    600*11/4096
 
 typedef struct
@@ -32,6 +32,9 @@ batt_state_t  m_battery;
 static nrf_saadc_value_t     m_batt_adc_buffer[BATT_SAMPLE_NUM];
 static uint32_t              m_batt_mv_av;
 //static bool                 batt_av_saadc_done_flag;
+
+
+void batt_charg_ind_pin_init(void);
 
 
 void saadc_callback(nrf_drv_saadc_evt_t const * p_event)
@@ -83,6 +86,8 @@ void batt_adc_init(void)
     nrfx_saadc_sample();
     
     battery_level_cal();
+    
+    batt_charg_ind_pin_init();
 
 }
 
@@ -139,9 +144,9 @@ int16_t batt_voltage_get(void)
 
 uint8_t battery_level_cal(void)
 {
-    #define MIN_BATTER_ADC  			100//2048  	//3.3v
-    #define MAX_BATTER_ADC  			900//2544  	//4.1v
-    #define BATT_LOW_POWER_LEVEL        20  //20%
+    #define MIN_BATTER_ADC  			2048  	//3.3v
+    #define MAX_BATTER_ADC  			2544  	//4.1v
+    #define BATT_LOW_POWER_LEVEL        20
     
     uint32_t  batt_level;
     static uint8_t   low_power_cnt=0;
@@ -160,6 +165,7 @@ uint8_t battery_level_cal(void)
     {
         batt_level = (batt_adc_value-MIN_BATTER_ADC)*100/(MAX_BATTER_ADC-MIN_BATTER_ADC);
     }
+    
     if(m_battery.batt_level !=batt_level)
     {
         m_battery.batt_level = batt_level;
@@ -174,19 +180,21 @@ uint8_t battery_level_cal(void)
     {
         if(++low_power_cnt>=2)
         {
+            low_power_cnt=2;
             m_battery.batt_low_flag = 1;
         }
-        else
-        {
-            low_power_cnt=0;
-            m_battery.batt_low_flag = 0;
-        }
+    }
+    else
+    {
+      low_power_cnt=0;
+      m_battery.batt_low_flag = 0;
     }
     
-    NRF_LOG_INFO("batt level: %d  ", batt_level); 
+    //NRF_LOG_INFO("batt level: %d  ", batt_level); 
     	
     return batt_level;
 }
+
 
 uint8_t batt_level_get(void)
 {       
@@ -194,7 +202,7 @@ uint8_t batt_level_get(void)
 }
 
 bool batt_low_alert_get(void)
-{       
+{
     return  m_battery.batt_low_flag;
 }
 
@@ -207,6 +215,35 @@ void batt_clear_adv_update_flag(void)
 {
     m_battery.adv_data_update_flag = 0;
 }
+
+
+//----------  batt  charge  --------------
+void  batt_charg_enable(bool enable)
+{
+   if(enable)
+   {
+		m_battery.charging_flag = 1;     //usb plug in
+        nrf_gpio_pin_clear(CHARG_EN_PIN);      
+   }
+   else
+   {
+        m_battery.charging_flag = 0;     //out
+        nrf_gpio_pin_set(CHARG_EN_PIN);     
+   }
+  
+}
+
+
+void batt_charg_ind_pin_init(void)
+{
+  
+    nrf_gpio_cfg_output(CHARG_EN_PIN);
+    nrf_gpio_pin_set(CHARG_EN_PIN);  
+    
+    nrf_gpio_cfg_input(USB_CHARG_IND_PIN, NRF_GPIO_PIN_NOPULL);
+    
+ }
+
 
 
 

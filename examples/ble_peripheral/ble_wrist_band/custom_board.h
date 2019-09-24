@@ -47,25 +47,25 @@ extern "C" {
 #include "nrf_gpio.h"
 
 // LEDs definitions 
-#define LEDS_NUMBER    4
+#define LEDS_NUMBER    1
 
-#define LED_START      17
+//#define LED_START      17  //29
 #define LED_1          17
-#define LED_2          18
-#define LED_3          19
-#define LED_4          20
-#define LED_STOP       20
+//#define LED_2          18
+//#define LED_3          19
+//#define LED_4          20
+//#define LED_STOP       20
 
 #define LEDS_ACTIVE_STATE 0
 
 #define LEDS_INV_MASK  LEDS_MASK
 
-#define LEDS_LIST { LED_1, LED_2, LED_3, LED_4 }
+#define LEDS_LIST { LED_1, /*LED_2, LED_3, LED_4*/ }
 
 #define BSP_LED_0      LED_1
-#define BSP_LED_1      LED_2
-#define BSP_LED_2      LED_3
-#define BSP_LED_3      LED_4 
+//#define BSP_LED_1      LED_2
+//#define BSP_LED_2      LED_3
+//#define BSP_LED_3      LED_4 
 
 //led_list index define  
 #define BSP_LED_RED      0  
@@ -76,40 +76,54 @@ extern "C" {
 //Buttons definitions     
 #define BUTTONS_NUMBER 1
   
-#define BUTTON_START   24
-#define BUTTON_1       BUTTON_START
-#define BUTTON_2       BUTTON_START
-#define BUTTON_3       BUTTON_START
-#define BUTTON_4       BUTTON_START
-#define BUTTON_STOP    BUTTON_START
+//#define BUTTON_START   3
+#define BUTTON_SOS          3
+//#define BUTTON_2       BUTTON_START
+//#define BUTTON_3       BUTTON_START
+//#define BUTTON_4       BUTTON_START
+//#define BUTTON_STOP    BUTTON_START
 #define BUTTON_PULL    NRF_GPIO_PIN_PULLUP
 
 #define BUTTONS_ACTIVE_STATE 0
 
-#define BUTTONS_LIST { BUTTON_1, /*BUTTON_2, BUTTON_3, BUTTON_4 */}
+#define BUTTONS_LIST { BUTTON_SOS, /*BUTTON_2, BUTTON_3, BUTTON_4 */}
 
-#define BSP_BUTTON_0   BUTTON_1
+#define BSP_BUTTON_0   BUTTON_SOS
 //#define BSP_BUTTON_1   BUTTON_2
 //#define BSP_BUTTON_2   BUTTON_3
 //#define BSP_BUTTON_3   BUTTON_4
 
-#define LIS3DH_INT2_PIN  20
+#define LIS3DH_INT2_PIN     18
+#define LIS3DH_INT1_PIN     21
+#define MOTOR_PIN           24 
+#define USB_CHARG_IND_PIN   8
+#define CHARG_EN_PIN        6 
+#define BATT_ADC_PIN        5  
+  
+#define SPIM0_SCK_PIN       12  // SPI clock GPIO pin number.
+#define SPIM0_MOSI_PIN      14  // SPI Master Out Slave In GPIO pin number.
+#define SPIM0_MISO_PIN      15  // SPI Master In Slave Out GPIO pin number.
+#define SPIM0_SS_PIN        16  // SPI Slave Select GPIO pin number.
+  
+  
+  
 
-#define RX_PIN_NUMBER  8
-#define TX_PIN_NUMBER  6
-#define CTS_PIN_NUMBER 7
-#define RTS_PIN_NUMBER 5
-#define HWFC           true
+  
+  
+  
+//#define RX_PIN_NUMBER  8
+//#define TX_PIN_NUMBER  6
+//#define CTS_PIN_NUMBER 7
+//#define RTS_PIN_NUMBER 5
+//#define HWFC           true
 
 #define SPIS_MISO_PIN   28  // SPI MISO signal.
 #define SPIS_CSN_PIN    12  // SPI CSN signal.
 #define SPIS_MOSI_PIN   25  // SPI MOSI signal.
 #define SPIS_SCK_PIN    29  // SPI SCK signal.
+  
 
-#define SPIM0_SCK_PIN     29  // SPI clock GPIO pin number.
-#define SPIM0_MOSI_PIN  25  // SPI Master Out Slave In GPIO pin number.
-#define SPIM0_MISO_PIN  28  // SPI Master In Slave Out GPIO pin number.
-#define SPIM0_SS_PIN        12  // SPI Slave Select GPIO pin number.
+
 
 #define SPIM1_SCK_PIN   2   // SPI clock GPIO pin number.
 #define SPIM1_MOSI_PIN  3   // SPI Master Out Slave In GPIO pin number.

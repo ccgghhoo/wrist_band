@@ -3,25 +3,28 @@
 #include "LibHeap.h"
 #include "dev_conf.pb.h"
 #include "dev_config.get.h"
-#include "loc_gsm.data.h"
-#include "record.h"
-#include "ls_api.h"
-#include "location.h"
-#include "loc_gsm.data.h"
+//#include "loc_gsm.data.h"
+//#include "record.h"
+//#include "ls_api.h"
+//#include "location.h" 
+//#include "loc_gsm.data.h"
 #include "proto.pack.h"
+#include "app_motion_detect.h"
 
+#if  0
 static int ProtoRecord_SingleLocation(struct objEpbProto *obj, uint8_t key, const uint8_t *p_data, uint16_t len);
 static int ProtoRecord_ContinueLocation(struct objEpbProto *obj, uint8_t key, const uint8_t *p_data, uint16_t len);
-
 static int ProtoRecord_HistoricalData(struct objEpbProto *obj, uint8_t key, const uint8_t *p_data, uint16_t len);
 static int ProtoRecord_MileageSet(struct objEpbProto *obj, uint8_t key, const uint8_t *p_data, uint16_t len);
 static int ProtoRecord_GPSLatestLoc(struct objEpbProto *obj, uint8_t key, const uint8_t *p_data, uint16_t len);
-
 static int ProtoRecord_BleLoc(struct objEpbProto *obj, uint8_t key, const uint8_t *p_data, uint16_t len);
+#endif
 
+static int ProtoRecord_StepCnt(struct objEpbProto *obj, uint8_t key, const uint8_t *p_data, uint16_t len);
 
 const EpbProtoKey_t scg_sProtoRecordKeys[] =
 {
+#if  0  
     {
         .key = DATA_SINGLE_LOCATION,
         .handle = ProtoRecord_SingleLocation,
@@ -50,15 +53,52 @@ const EpbProtoKey_t scg_sProtoRecordKeys[] =
         .key = DATA_KEY_BLE_LOC,
         .handle = ProtoRecord_BleLoc,
     },
+#endif
+    
+    {
+        .key = DATA_KEY_STEP_DATA,
+        .handle = ProtoRecord_StepCnt,
+    },
+    
+    
+    
+    
+    
 };
 
 const uint8_t s_ucProtoRecodeKeySize = sizeof(scg_sProtoRecordKeys) / sizeof(scg_sProtoRecordKeys[0]);
 
 
 
+static int ProtoRecord_StepCnt(struct objEpbProto *obj, uint8_t key, const uint8_t *p_data, uint16_t len)
+{
+    uint8_t temp[16];
+    uint16_t chunk_len = 0;
+
+    temp[0] = COMMAND_ID_DATA;
+
+    temp[1] = 10;
+    temp[2] = DATA_KEY_STEP_DATA;
+    
+    uint32_t temp32 = RunTime_GetValue();
+    
+    memcpy(temp + 3, (uint8_t *)&temp32, 4);
+    chunk_len += 7;
+ 
+    temp32 = md_app_get_step_counter();  //get step cnt //chen
+    memcpy(&temp[chunk_len], (uint8_t *)&temp32, 4);
+    
+    chunk_len += 4;
+
+    Proto_Resp(obj, FLAG_NORMAL_RESP, temp, chunk_len);
+    return true;
+  
+}
 
 
 
+
+#if  0
 bool ProtoRecord_gps_latest_data(objEpbProto_t *obj)
 {
     uint8_t temp[50];
@@ -226,4 +266,5 @@ static int ProtoRecord_BleLoc(struct objEpbProto *obj, uint8_t key, const uint8_
     Proto_RespNegative(obj, EPB_SUCCESS);
     return 0;
 }
+#endif
 

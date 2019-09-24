@@ -514,7 +514,7 @@ uint32_t bsp_init(uint32_t type, bsp_event_callback_t callback)
         if (err_code == NRF_SUCCESS)
         {
             err_code = app_timer_create(&m_bsp_button_tmr,
-                                        APP_TIMER_MODE_SINGLE_SHOT,
+                                        APP_TIMER_MODE_REPEATED,//APP_TIMER_MODE_SINGLE_SHOT,
                                         button_timer_handler);
         }
     }

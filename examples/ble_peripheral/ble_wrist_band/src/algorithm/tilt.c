@@ -281,7 +281,7 @@ void tilt_moudle_gsensor_data_handler(vector3_t *input, bool temp_device_is_slee
             {
                 if (temp_device_current_angle <= m_user_config_alarm_value.user_alarm_angle_value)
                 {
-                    Nprintf( "[TILT] TILT_PREPARE to TILT_COUNT \r\n");
+                    //Nprintf( "[TILT] TILT_PREPARE to TILT_COUNT \r\n");
                     m_device_current_state				= TILT_COUNT;
                     m_state_timeout_counter				= 0;
                     m_device_shake_threshold_counter	= 0;
@@ -293,10 +293,10 @@ void tilt_moudle_gsensor_data_handler(vector3_t *input, bool temp_device_is_slee
             {
                 if (temp_device_current_angle > USER_ALARM_ANGLE_VALUE_MAX)
                 {
-                    Nprintf("[TILT] m_user_war_prepare_counter = %d\r\n", m_user_war_prepare_counter);
+                    //Nprintf("[TILT] m_user_war_prepare_counter = %d\r\n", m_user_war_prepare_counter);
                     if (++m_user_war_prepare_counter > TILT_TIME_MS_REQ(8000))
                     {
-                        Nprintf("[TILT] m_device_have_first_angle = true  \r\n");
+                        //Nprintf("[TILT] m_device_have_first_angle = true  \r\n");
                         //        loc_gsm_task_setup_musicplay(MUSIC_PRE_TILT);
                         m_user_war_prepare_counter	= 0;
                         m_device_have_first_angle	= true;
@@ -314,7 +314,7 @@ void tilt_moudle_gsensor_data_handler(vector3_t *input, bool temp_device_is_slee
         {
             if (++m_state_timeout_counter >= TILT_TIME_MS_REQ(5000))
             {
-                Nprintf("[TILT] m_device_current_state = TILT_REBACK_FIRST  \r\n");
+                //Nprintf("[TILT] m_device_current_state = TILT_REBACK_FIRST  \r\n");
                 m_device_current_state = TILT_REBACK_FIRST;
                 break;
             }
@@ -333,7 +333,7 @@ void tilt_moudle_gsensor_data_handler(vector3_t *input, bool temp_device_is_slee
             {
                 if (++m_tilt_vaild_state_counter >= TILT_TIME_MS_REQ(1500))
                 {
-                    Nprintf( "[TILT] count to static! temp_device_current_angle:%d \r\n", temp_device_current_angle);
+                   // Nprintf( "[TILT] count to static! temp_device_current_angle:%d \r\n", temp_device_current_angle);
                     m_device_current_state				= TILT_STATIC;
                     m_user_tilt_static_counter			= 0;
                     m_device_shake_threshold_counter	= 0;
@@ -351,7 +351,7 @@ void tilt_moudle_gsensor_data_handler(vector3_t *input, bool temp_device_is_slee
         {
             if (++m_state_timeout_counter >= TILT_TIME_MS_REQ((1 + USER_ALARM_TIME_VALUE_SET_MAX) * 1000))
             {
-                Nprintf( "[TILT] static to reback_fist\r\n");
+                //Nprintf( "[TILT] static to reback_fist\r\n");
                 m_device_current_state = TILT_REBACK_FIRST;
                 break;
             }
@@ -376,7 +376,7 @@ void tilt_moudle_gsensor_data_handler(vector3_t *input, bool temp_device_is_slee
                 {
                     m_tilt_module.tilt_state_handler(TILE_MODULE_STATUE_OCCUR);
                 }
-                Nprintf( "[TILT] tilt detect! \r\n");
+                //Nprintf( "[TILT] tilt detect! \r\n");
 //                Nprintf( "[TILT] 设置的倾斜角度：%d 倾斜持续时间：%d.\r\n", m_user_config_alarm_value.user_alarm_angle_value, m_user_config_alarm_value.user_alarm_time_value);
                 m_device_current_state = TILT_REBACK_FIRST;
             }

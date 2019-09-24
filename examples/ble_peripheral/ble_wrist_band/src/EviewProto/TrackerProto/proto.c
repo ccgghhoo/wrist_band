@@ -30,7 +30,7 @@ static const EpbProtoCmd_t scg_sCmds[] =
         .keys = scg_sProtoControlKeys,
         .pKeySize = &s_ucProtoControlKeySize,
     },
-
+*/
     {
         //0x01
         .cmd = COMMAND_ID_DATA,
@@ -38,7 +38,7 @@ static const EpbProtoCmd_t scg_sCmds[] =
         .keys = scg_sProtoRecordKeys,
         .pKeySize = &s_ucProtoRecodeKeySize,
     },
-*/
+
     {
         //0x7E  dfu
         .cmd = COMMAND_ID_FIRMWARE,

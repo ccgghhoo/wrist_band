@@ -19,8 +19,11 @@
 #include "Proto.pack.h"
 #include "config.h"
 #include "dev_conf.h"
-
-#define DEV_LOG  HZH_LOG
+#if 0
+#define DEV_LOG  NRF_LOG_INFO
+#else
+#define DEV_LOG
+#endif
 
 
 
@@ -394,18 +397,18 @@ void dev_conf_init(dev_conf_init_t *p_conf_init)
 
     if (DevConf_GetAndVaild(CONF_FILE_NORMAL))
     {
-        DEV_LOG("CONF_FILE_NORMAL Get ok\r\n");
+        //DEV_LOG("CONF_FILE_NORMAL Get ok\r\n");
     }
 
     else if (DevConf_GetAndVaild(CONF_FILE_BACKUP))
     {
 
-        DEV_LOG("CONF_FILE_BACKUP Get ok\r\n");
+        //DEV_LOG("CONF_FILE_BACKUP Get ok\r\n");
     }
     else if (DevConf_GetAndVaild(CONF_FILE_FACTORY))
     {
 
-        DEV_LOG("CONF_FILE_FACTORY Get ok\r\n");
+       //DEV_LOG("CONF_FILE_FACTORY Get ok\r\n");
     }
     else
     {

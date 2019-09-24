@@ -535,8 +535,11 @@ uint8_t LIS3DH_ReadReg(uint8_t Reg, uint8_t* Data);
 uint8_t LIS3DH_WriteReg(uint8_t Reg, uint8_t  Data);
  
 uint8_t  get_spi_xfer_done_flag(void);
+
+
 void LIS3DH_SpiInit(void);
 void LIS3DH_spi_uninit(void);
+void LIS3DH_INT_PIN_init(void);
 
 #endif /* __LIS3DH_H */
 

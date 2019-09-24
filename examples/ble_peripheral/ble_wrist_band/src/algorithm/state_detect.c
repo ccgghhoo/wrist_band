@@ -3,11 +3,9 @@
 #include "g_sensor_motion_lib.h"
 //#include "log.h"
 #include "dev_config.get.h"
-//#include "DateTime.h"
+#include "DateTime.h"
 //#include "ls.code.h"
 #include "app_motion_detect.h"
-#include "app_utc_time.h"
-
 
 
 //static
@@ -94,7 +92,7 @@ void MotionAlert_Update(int32_t diff)
 //            HID_LOG(LOG_MOALERT, "MotionClear.\r\n");
             m_state_motion.motion_count = 0;
             m_state_motion.static_count = 0;
-            m_state_motion.static_timestramp = app_utc_get_current_time_senconds();
+            m_state_motion.static_timestramp = RunTime_GetValue();
             m_state_motion.state = MOTION_ALERT_STA_STATIC;
             break;
         }
@@ -105,7 +103,7 @@ void MotionAlert_Update(int32_t diff)
             if (diff > MOTION_THRESHOLD_MAX)
             {
                 tick = 0;
-                m_state_motion.static_timestramp = app_utc_get_current_time_senconds();
+                m_state_motion.static_timestramp = RunTime_GetValue();
                 m_state_motion.static_count = 0;
             }
 
@@ -193,7 +191,7 @@ void NomotionAlert_Update(int32_t diff)
             sg_sNomotionInfo.count = 0;
             if (sg_sNomotionInfo.isAlert == false)
             {
-                sg_sNomotionInfo.timestamp = app_utc_get_current_time_senconds();
+                sg_sNomotionInfo.timestamp = RunTime_GetValue();
                 sg_sNomotionInfo.state = NOMOTION_ALERT_STA_STATIC;
             }
             else sg_sNomotionInfo.state = NOMOTION_ALERT_STA_WAIT_MOTION;
@@ -205,7 +203,7 @@ void NomotionAlert_Update(int32_t diff)
             if (diff > MOTION_THRESHOLD_MAX)
             {
                 sg_sNomotionInfo.count = 0;
-                sg_sNomotionInfo.timestamp = app_utc_get_current_time_senconds();
+                sg_sNomotionInfo.timestamp = RunTime_GetValue();
             }
 
             /*
@@ -327,14 +325,12 @@ void MotionAlertLoop()
     //¾²Ö¹¼ì²â¡£
     if (dev_config_get_alert_actionless_enable() == true)
     {
-        uint32_t temp32 = dev_config_get_alert_actionless_threshold()+sg_sNomotionInfo.timestamp;//2019/07/10 changed
                
-        if (sg_sNomotionInfo.state == NOMOTION_ALERT_STA_STATIC) //false == RunTime_InRange(sg_sNomotionInfo.timestamp, dev_config_get_alert_actionless_threshold()))
-        {    
-            if (temp32 < app_utc_get_current_time_senconds())          
-            {
+        if (sg_sNomotionInfo.state == NOMOTION_ALERT_STA_STATIC
+            && false == RunTime_InRange(sg_sNomotionInfo.timestamp, dev_config_get_alert_actionless_threshold()))
+        {
                 sg_sNomotionInfo.state = NOMOTION_ALERT_STA_WAIT_MOTION;
-            }
+            
         }
         else if(sg_sNomotionInfo.state == NOMOTION_ALERT_STA_WAIT_MOTION) //chen added 2019/07/11
         {                  
@@ -350,13 +346,11 @@ void MotionAlertLoop()
     }
 
     //¶¯¼ì²â¡£
-    if (dev_config_get_alert_motion_enable() == true)
+    if(dev_config_get_alert_motion_enable() == true)
     {
         if (MOTION_ALERT_STA_STATIC == m_state_motion.state)
         {
-            uint32_t temp32 = dev_config_get_alert_motion_setup_time()+m_state_motion.static_timestramp;
-            if( temp32 < app_utc_get_current_time_senconds() ) //2019/07/10 changed
-                //(false == RunTime_InRange(m_state_motion.static_timestramp, dev_config_get_alert_motion_setup_time()))
+            if(false == RunTime_InRange(m_state_motion.static_timestramp, dev_config_get_alert_motion_setup_time()))
             {
                 m_state_motion.state = MOTION_ALERT_STA_WAIT_MOTION;
 //                HID_LOG(LOG_MOALERT, "Motion Wait Motion.\r\n");
