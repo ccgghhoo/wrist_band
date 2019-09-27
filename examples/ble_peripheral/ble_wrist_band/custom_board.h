@@ -47,30 +47,32 @@ extern "C" {
 #include "nrf_gpio.h"
 
 // LEDs definitions 
-#define LEDS_NUMBER    1
+#define LEDS_NUMBER    2
 
 //#define LED_START      17  //29
 #define LED_1          17
-//#define LED_2          18
-//#define LED_3          19
-//#define LED_4          20
+#define LED_2          24    //motor
+#define LED_3          19
+#define LED_4          20
 //#define LED_STOP       20
 
 #define LEDS_ACTIVE_STATE 0
 
 #define LEDS_INV_MASK  LEDS_MASK
 
-#define LEDS_LIST { LED_1, /*LED_2, LED_3, LED_4*/ }
+#define LEDS_LIST { LED_1, LED_2, /*LED_3, LED_4*/ }
 
 #define BSP_LED_0      LED_1
-//#define BSP_LED_1      LED_2
-//#define BSP_LED_2      LED_3
-//#define BSP_LED_3      LED_4 
+#define BSP_LED_1      LED_2
+#define BSP_LED_2      LED_3
+#define BSP_LED_3      LED_4 
 
-//led_list index define  
-#define BSP_LED_RED      0  
-#define BSP_LED_GREEN    1
-#define BSP_LED_BLUE     2  
+
+#define LED_MODE_ID_GREEN    0  //∂‘”¶LEDS_LIST÷– index
+#define LED_MODE_ID_MOTOR    1   
+#define LED_MODE_ID_BLUE     2
+#define LED_MODE_ID_RED      3  
+
   
  
 //Buttons definitions     

@@ -18,10 +18,11 @@ uint32_t batt_voltage_av_get(void);
 uint8_t battery_level_cal(void);
 uint8_t batt_level_get(void);
 
-bool batt_level_changed(void);
+bool batt_state_changed(void);
 void batt_clear_adv_update_flag(void);
 bool batt_low_alert_get(void);
-
+bool batt_charging_check(void);
+bool batt_charging_flag_get(void);
 #endif /* */
 
 

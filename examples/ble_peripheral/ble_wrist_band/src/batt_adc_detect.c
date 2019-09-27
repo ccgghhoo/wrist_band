@@ -21,7 +21,7 @@ typedef struct
     uint16_t adc_value;
     uint8_t  batt_level;
     uint8_t  charging_flag:1;
-    uint8_t  adv_data_update_flag:1;
+    uint8_t  batt_level_update_flag:1;
     uint8_t  batt_low_flag:1;
     uint8_t  noused:5;
   
@@ -169,11 +169,11 @@ uint8_t battery_level_cal(void)
     if(m_battery.batt_level !=batt_level)
     {
         m_battery.batt_level = batt_level;
-        m_battery.adv_data_update_flag = 1;
+        m_battery.batt_level_update_flag = 1;
     }
     else
     {
-        m_battery.adv_data_update_flag = 0;
+        m_battery.batt_level_update_flag = 0;
     }
     
     if(batt_level<BATT_LOW_POWER_LEVEL)
@@ -206,18 +206,18 @@ bool batt_low_alert_get(void)
     return  m_battery.batt_low_flag;
 }
 
-bool batt_level_changed(void)
+bool batt_state_changed(void)
 {       
-    return  (m_battery.adv_data_update_flag == 1)||(m_battery.charging_flag==1)||(m_battery.batt_low_flag==1);
+    return  (m_battery.batt_level_update_flag == 1)||(m_battery.charging_flag==1)||(m_battery.batt_low_flag==1);
 }
 
 void batt_clear_adv_update_flag(void)
 {
-    m_battery.adv_data_update_flag = 0;
+    m_battery.batt_level_update_flag = 0;
 }
 
 
-//----------  batt  charge  --------------
+//------------------  batt  charge  ------------------
 void  batt_charg_enable(bool enable)
 {
    if(enable)
@@ -235,14 +235,39 @@ void  batt_charg_enable(bool enable)
 
 
 void batt_charg_ind_pin_init(void)
-{
+{ 
   
     nrf_gpio_cfg_output(CHARG_EN_PIN);
     nrf_gpio_pin_set(CHARG_EN_PIN);  
     
-    nrf_gpio_cfg_input(USB_CHARG_IND_PIN, NRF_GPIO_PIN_NOPULL);
+    nrf_gpio_cfg_input(USB_CHARG_IND_PIN, NRF_GPIO_PIN_NOPULL);//NRF_GPIO_PIN_PULLDOWN
     
  }
+
+bool batt_charging_check(void)
+{
+    if(nrf_gpio_pin_read(USB_CHARG_IND_PIN))
+    {
+        if(m_battery.charging_flag==0)
+        {
+            batt_charg_enable(true);
+        }
+    }
+    else
+    {
+        if(m_battery.charging_flag)
+        {
+            batt_charg_enable(false);
+        }
+    }
+  
+    return m_battery.charging_flag==1;
+}
+
+bool batt_charging_flag_get(void)
+{
+  return m_battery.charging_flag==1;
+}
 
 
 

@@ -21,6 +21,7 @@
 #include "peer_manager.h"
 #include "peer_manager_handler.h"
 #include "user_app_btn.h"
+#include "app_led_ind.h"
 #include "sensorsim.h"
 #include "ble_conn_state.h"
 #include "nrf_ble_gatt.h"
@@ -41,8 +42,8 @@
 #include "nrf_log_default_backends.h"
 
 
-#define DEVICE_NAME                     "eview_band2"                       /**< Name of device. Will be included in the advertising data. */
-#define MANUFACTURER_NAME               "eview_tech"                   /**< Manufacturer. Will be passed to Device Information Service. */
+#define DEV_NAME                        "eview_band2"                       /**< Name of device. Will be included in the advertising data. */
+#define MANUFACTURER_NAME               "eview"                   /**< Manufacturer. Will be passed to Device Information Service. */
 #define APP_ADV_INTERVAL                300                                     /**< The advertising interval (in units of 0.625 ms. This value corresponds to 187.5 ms). */
 #define APP_ADV_INERVAL_CONNECTED       1000
 
@@ -89,13 +90,9 @@ static ble_uuid_t m_adv_uuids[] =                                               
 };
 
 
-
 static bool         m_is_fast_conn_mode = false;
-//static 
 uint16_t             m_ble_nus_max_data_len = BLE_GATT_ATT_MTU_DEFAULT - 3;  /**< Maximum length of data (in bytes) that can be transmitted to the peer by the Nordic UART service module. */
 
-#define MANUFACTURE_NAME				"Eview"
-#define FIRMWARE_REVISION				"v0.1"
 
 const ble_gap_conn_params_t fast_conn_params =
 {
@@ -208,11 +205,11 @@ static void gap_params_init(void)
     BLE_GAP_CONN_SEC_MODE_SET_OPEN(&sec_mode);
 
     err_code = sd_ble_gap_device_name_set(&sec_mode,
-                                          (const uint8_t *)DEVICE_NAME,
-                                          strlen(DEVICE_NAME));
+                                          (const uint8_t *)DEV_NAME,
+                                          strlen(DEV_NAME));
     APP_ERROR_CHECK(err_code);
 
-    /* YOUR_JOB: Use an appearance value matching the application's use case.
+    /* Use an appearance value matching the application's use case.
        err_code = sd_ble_gap_appearance_set(BLE_APPEARANCE_);
        APP_ERROR_CHECK(err_code); */
 
@@ -260,15 +257,6 @@ static void nrf_qwr_error_handler(uint32_t nrf_error)
     APP_ERROR_HANDLER(nrf_error);
 }
 
-
-//void wb_recive_data_handler(ble_nus_evt_t * p_evt)
-//{
-//    if (p_evt->type == BLE_NUS_EVT_RX_DATA)
-//    {
-//        
-//      
-//    }
-//}
 
 /**@brief Function for initializing services that will be used by the application.
  */
@@ -353,18 +341,6 @@ static void conn_params_init(void)
 }
 
 
-/**@brief Function for starting timers.
- */
-static void application_timers_start(void)
-{
-    /* YOUR_JOB: Start your timers. below is an example of how to start a timer.
-       ret_code_t err_code;
-       err_code = app_timer_start(m_app_timer_id, TIMER_INTERVAL, NULL);
-       APP_ERROR_CHECK(err_code); */
-
-}
-
-
 /**@brief Function for putting the chip into sleep mode.
  *
  * @note This function will not return.
@@ -411,8 +387,9 @@ static void on_adv_evt(ble_adv_evt_t ble_adv_evt)
     {
         case BLE_ADV_EVT_FAST:
             NRF_LOG_INFO("Fast advertising.");
-            err_code = bsp_indication_set(BSP_INDICATE_ADVERTISING);
-            APP_ERROR_CHECK(err_code);
+            //err_code = bsp_indication_set(BSP_INDICATE_ADVERTISING);
+            //APP_ERROR_CHECK(err_code);
+            app_led_indicate_set(LED_MODE_BLE_ADVERTISING);
             break;
 
         case BLE_ADV_EVT_IDLE:
@@ -448,13 +425,15 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
 //            sd_ble_gap_adv_stop(m_advertising.adv_handle);
 //            advertising_init_2(true);           
 //            sd_ble_gap_adv_start(m_advertising.adv_handle, APP_BLE_CONN_CFG_TAG);
-            bsp_indication_set(BSP_INDICATE_ADVERTISING);
+            ///bsp_indication_set(BSP_INDICATE_ADVERTISING);
+            app_led_indicate_set(LED_MODE_BLE_ADVERTISING);
             break;
 
         case BLE_GAP_EVT_CONNECTED:
             NRF_LOG_INFO("Connected.");
-            err_code = bsp_indication_set(BSP_INDICATE_CONNECTED);
-            APP_ERROR_CHECK(err_code);
+            
+            app_led_indicate_set(LED_MODE_BLE_CONNECTED); 
+            
             m_conn_handle = p_ble_evt->evt.gap_evt.conn_handle;
             err_code = nrf_ble_qwr_conn_handle_assign(&m_qwr, m_conn_handle);
             APP_ERROR_CHECK(err_code);
@@ -633,9 +612,14 @@ void  update_adv_data(void)
 
     if(batt_low_alert_get())
     {
-       NRF_LOG_INFO("battery low!!!");
+       //NRF_LOG_INFO("battery low!!!");
        states |= BA_BATT_LOW;
     }
+    if(batt_charging_flag_get())
+    {
+       states |= BA_BATT_IN_CHARGING;
+    }
+    
     adv_data[8] = states >> 0;
     adv_data[9] = states >> 8;
       
@@ -643,15 +627,18 @@ void  update_adv_data(void)
     adv_data[10] = crc ;
     adv_data[11] = crc >> 8; 
     
-    memcpy(m_adv_manuf_data, &adv_data[2], 10);
-    err_code=sd_ble_gap_adv_stop(m_advertising.adv_handle);
-     //NRF_LOG_INFO("adv stop reslut: %x", err_code);
-    //APP_ERROR_CHECK(err_code);
-    advertising_init_2(!ble_is_connected());
-    
-    err_code=sd_ble_gap_adv_start(m_advertising.adv_handle, APP_BLE_CONN_CFG_TAG);
-    //NRF_LOG_INFO("adv start result: %x", err_code);
-    APP_ERROR_CHECK(err_code);
+    if(memcmp(m_adv_manuf_data, &adv_data[2],10)) // data changed then update 
+    {
+      memcpy(m_adv_manuf_data, &adv_data[2], 10);
+      err_code=sd_ble_gap_adv_stop(m_advertising.adv_handle);
+      NRF_LOG_INFO("adv stop reslut: %x", err_code);
+      //APP_ERROR_CHECK(err_code);
+      advertising_init_2(!ble_is_connected());
+      
+      err_code=sd_ble_gap_adv_start(m_advertising.adv_handle, APP_BLE_CONN_CFG_TAG);
+      NRF_LOG_INFO("adv start result: %x", err_code);
+      APP_ERROR_CHECK(err_code);
+    }
 }
 
 static void advertising_init_2(bool connectable)
@@ -822,19 +809,16 @@ void ble_role_init(void)
 //    buttons_leds_init();
     
     ble_stack_init();
-    //bl_radio_init();   //是否需要
+    //bl_radio_init();   //不需要
     gap_params_init();
     gatt_init();
     advertising_init();
     services_init();
     conn_params_init();
     peer_manager_init();
-               
-//    application_timers_start();
-       
+                    
     advertising_start();
-    
-    
+        
 }
 
 

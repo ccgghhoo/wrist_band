@@ -41,15 +41,15 @@ void app_evt_poll(void)
     if(m_user_time_senconds%60==0)
     {
       battery_level_cal();
-      batt_voltage_get();  
-      
-      if(batt_level_changed())      
-      {       
-          batt_clear_adv_update_flag();
-          update_adv_data();
-      }
+      batt_voltage_get();        
     }
     
+    batt_charging_check();
+    if(batt_state_changed())      
+    {       
+      batt_clear_adv_update_flag();
+      update_adv_data();
+    }
     
          
     //md_motion_or_static_alert_judge();

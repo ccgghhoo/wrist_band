@@ -16,9 +16,9 @@
 #define PROPERTY_MODULE_NAME	0x20190916
 #endif
 
-#define VER_H (1)
+#define VER_H (0)
 #define VER_M (0)
-#define VER_L (7)
+#define VER_L (0)
 #define VER_ML (1)
 
 // <o> Firmware Version

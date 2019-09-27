@@ -9,7 +9,7 @@
 #include "app_motion_detect.h"
 #include "peripheral_role.h"
 #include "batt_adc_detect.h"   
-
+#include "app_led_ind.h" 
 
 
 int32_t DeviceReset_CallBack()
@@ -31,12 +31,11 @@ void  hal_init(void)
 {
     timers_init();
     buttons_leds_init();
-   
+    led_ind_init();
 	DateTime_Init();
     md_init();
     batt_adc_init();
-    
-    
+        
 }
 
 

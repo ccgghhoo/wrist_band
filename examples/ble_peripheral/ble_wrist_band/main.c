@@ -67,7 +67,8 @@
 #include "batt_adc_detect.h"   
 #include "dfu.h"
 #include "app_evt.h"  
-#include "app_nus.h"    
+#include "app_nus.h"
+#include "app_init.h"
 
 
 /**@brief Function for initializing the nrf log module.
