@@ -37,8 +37,8 @@
 
 #ifndef __ARCHDEP__TYPES
 #define __ARCHDEP__TYPES
-
-typedef unsigned char uint8_t;
+#include <stdint.h>
+//typedef unsigned char uint8_t;
 typedef unsigned short int u16_t;
 typedef short int i16_t;
 typedef signed char i8_t;

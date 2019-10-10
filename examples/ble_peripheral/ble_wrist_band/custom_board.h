@@ -47,53 +47,53 @@ extern "C" {
 #include "nrf_gpio.h"
 
 // LEDs definitions 
-#define LEDS_NUMBER    2
+#define LEDS_NUMBER         2
 
-//#define LED_START      17  //29
-#define LED_1          17
-#define LED_2          24    //motor
-#define LED_3          19
-#define LED_4          20
-//#define LED_STOP       20
+#define LED_GREEN          17
+#define LED_MOTOR          24    //motor
+#define LED_RED            19
+#define LED_BLUE           20
 
-#define LEDS_ACTIVE_STATE 0
 
-#define LEDS_INV_MASK  LEDS_MASK
+#define LEDS_ACTIVE_STATE   0
 
-#define LEDS_LIST { LED_1, LED_2, /*LED_3, LED_4*/ }
+#define LEDS_INV_MASK       LEDS_MASK
 
-#define BSP_LED_0      LED_1
-#define BSP_LED_1      LED_2
-#define BSP_LED_2      LED_3
-#define BSP_LED_3      LED_4 
+#define LEDS_LIST           { LED_GREEN, LED_MOTOR, /*LED_RED, LED_BLUE*/ }
+
+#define BSP_LED_0           LED_GREEN
+#define BSP_LED_1           LED_MOTOR
+#define BSP_LED_2           LED_RED
+#define BSP_LED_3           LED_BLUE 
 
 
 #define LED_MODE_ID_GREEN    0  //∂‘”¶LEDS_LIST÷– index
-#define LED_MODE_ID_MOTOR    1   
-#define LED_MODE_ID_BLUE     2
-#define LED_MODE_ID_RED      3  
+#define LED_MODE_ID_MOTOR    1  
+#define LED_MODE_ID_RED      2   
+#define LED_MODE_ID_BLUE     3
+ 
 
   
  
 //Buttons definitions     
 #define BUTTONS_NUMBER 1
   
-//#define BUTTON_START   3
+
 #define BUTTON_SOS          3
 //#define BUTTON_2       BUTTON_START
 //#define BUTTON_3       BUTTON_START
 //#define BUTTON_4       BUTTON_START
-//#define BUTTON_STOP    BUTTON_START
-#define BUTTON_PULL    NRF_GPIO_PIN_PULLUP
+
+#define BUTTON_PULL      NRF_GPIO_PIN_PULLUP
 
 #define BUTTONS_ACTIVE_STATE 0
 
-#define BUTTONS_LIST { BUTTON_SOS, /*BUTTON_2, BUTTON_3, BUTTON_4 */}
+#define BUTTONS_LIST        { BUTTON_SOS, /*BUTTON_2, BUTTON_3, BUTTON_4 */}
 
-#define BSP_BUTTON_0   BUTTON_SOS
-//#define BSP_BUTTON_1   BUTTON_2
-//#define BSP_BUTTON_2   BUTTON_3
-//#define BSP_BUTTON_3   BUTTON_4
+#define BSP_BUTTON_0        BUTTON_SOS
+//#define BSP_BUTTON_1      BUTTON_2
+//#define BSP_BUTTON_2      BUTTON_3
+//#define BSP_BUTTON_3      BUTTON_4
 
 #define LIS3DH_INT2_PIN     18
 #define LIS3DH_INT1_PIN     21

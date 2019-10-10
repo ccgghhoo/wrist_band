@@ -10,6 +10,7 @@
 #include "peripheral_role.h"
 #include "batt_adc_detect.h"   
 #include "app_led_ind.h" 
+#include "app_fds.h"
 
 
 int32_t DeviceReset_CallBack()
@@ -35,6 +36,7 @@ void  hal_init(void)
 	DateTime_Init();
     md_init();
     batt_adc_init();
+    
         
 }
 
@@ -47,6 +49,8 @@ void  app_init(void)
      ble_role_init();
      
 	 app_proto_init();
+     
+     app_fds_init();
 	 
      
      

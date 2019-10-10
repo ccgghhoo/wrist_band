@@ -41,7 +41,9 @@ void app_evt_poll(void)
     if(m_user_time_senconds%60==0)
     {
       battery_level_cal();
-      batt_voltage_get();        
+      batt_voltage_get();
+      
+      //history_data_save();//for test
     }
     
     batt_charging_check();

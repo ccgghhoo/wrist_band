@@ -40,9 +40,9 @@
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
 #if 0
-#define DEBUG       NRF_LOG_INFO
+#define Hid_Log       NRF_LOG_INFO
 #else
-#define DEBUG(...)
+#define Hid_Log(...)
 #endif
 
 
@@ -202,7 +202,7 @@ void proto_pack_get_ble_loc(msg_packet_t *reqHead)
     data_buff = __send_pack_msg(reqHead, temp, chunk_len, FLAG_ACK_RESP);
     if (data_buff == NULL) //no more heap to alloc
     {
-        DEBUG("[PACK]: no more buffer \r\n ");
+        Hid_Log("[PACK]: no more buffer \r\n ");
         return;
     }
     app_nus_tx_data_put(data_buff, chunk_len + 8);
@@ -233,7 +233,7 @@ void proto_pack_set_dev_info(msg_packet_t *reqHead)
     data_buff = __send_pack_msg(reqHead, temp, index, FLAG_ACK_RESP);
     if (data_buff == NULL) //no more heap to alloc
     {
-        DEBUG("[PACK]: no more buffer \r\n ");
+        Hid_Log("[PACK]: no more buffer \r\n ");
         return;
     }
     app_nus_tx_data_put(data_buff, index + 8);
@@ -261,7 +261,7 @@ void proto_pack_get_ble_base_info(msg_packet_t *reqHead)
     data_buff = __send_pack_msg(reqHead, temp, index, FLAG_ACK_RESP);
     if (data_buff == NULL) //no more heap to alloc
     {
-        DEBUG("[PACK]: no more buffer \r\n ");
+        Hid_Log("[PACK]: no more buffer \r\n ");
         return;
     }
     app_nus_tx_data_put(data_buff, index + 8);
@@ -294,7 +294,7 @@ void proto_pack_send_ble_music_play(msg_packet_t *reqHead, int music, uint8_t lo
     data_buff = __send_pack_msg(reqHead, temp, index, FLAG_ACK_RESP);
     if (data_buff == NULL) //no more heap to alloc
     {
-        DEBUG("[PACK]: no more buffer \r\n ");
+        Hid_Log("[PACK]: no more buffer \r\n ");
         return;
     }
     app_nus_tx_data_put(data_buff, index + 8);
@@ -324,7 +324,7 @@ void proto_pack_send_ble_music_ctrl(msg_packet_t *reqHead, int control)
     data_buff = __send_pack_msg(reqHead, temp, index, FLAG_ACK_RESP);
     if (data_buff == NULL) //no more heap to alloc
     {
-        DEBUG("[PACK]: no more buffer \r\n ");
+        Hid_Log("[PACK]: no more buffer \r\n ");
         return;
     }
     app_nus_tx_data_put(data_buff, index + 8);
@@ -352,7 +352,7 @@ void proto_pack_get_historical_tx_completed_msg(PacketInfo_t *targ)
     memcpy(temp + 3, (uint8_t *)dev_config_get_IMEI(), 15);
     chunk_len += 18;
     chunk_len += UserID_Append(temp + chunk_len);
-    DEBUG("##############################\r\n");
+    Hid_Log("##############################\r\n");
 
 
 
@@ -605,13 +605,13 @@ void proto_pack_get_activity_data_msg(PacketInfo_t *targ)
 #define MAX_LEN 500
     uint8_t *tx_buff = (uint8_t *)APP_MALLOC(PROTO_PACK_SEND_HISTORICAL_DATA,  MAX_LEN);
 
-    DEBUG("X1\r\n");
+    Hid_Log("X1\r\n");
     if (tx_buff == NULL)
     {
         targ->p_data = NULL;
         return;
     }
-    DEBUG("X2\r\n");
+    Hid_Log("X2\r\n");
     uint16_t chunk_len = 0;
 
     tx_buff[0] = COMMAND_ID_DATA;
@@ -694,10 +694,10 @@ void proto_pack_get_historical_data_msg(PacketInfo_t *targ)
     chunk_len += 15;
     chunk_len += UserID_Append(tx_buff + chunk_len);
     //
-    DEBUG("X1\r\n");
+    Hid_Log("X1\r\n");
     temp_offset = record_data_fetch(tx_buff + chunk_len, (NEW_EPB_PAYLOAD_MAX_LEN - chunk_len));
     chunk_len += temp_offset;
-    DEBUG("X2 temp_offset%d\r\n", temp_offset);
+    Hid_Log("X2 temp_offset%d\r\n", temp_offset);
 
     LibStack_Debug();
     if (temp_offset > 0)
@@ -728,7 +728,7 @@ void proto_pack_req_server_parse_lat_long(PacketInfo_t *targ)
     if (!ls_api_get_final_lat_lng(&lat, &lng))
     {
         targ->p_data = NULL;
-        DEBUG("No data\r\n");
+        Hid_Log("No data\r\n");
         return;
     }
 #else
@@ -753,7 +753,7 @@ void proto_pack_req_server_parse_lat_long(PacketInfo_t *targ)
     targ->p_data = __send_pack_msg(&targ->head, temp, index, FLAG_ACK_RESP);
     targ->size = index + EPB_HEAD_DATA_SIZE;
 
-    DEBUG("Request parse Address\r\n");
+    Hid_Log("Request parse Address\r\n");
 }
 
 // weak reference
@@ -780,7 +780,7 @@ void G_sensor_report_data(uint8_t *p_data, uint16_t length)
     uint8_t *data_buff = (uint8_t *)APP_MALLOC(PROTO_PACK_DATA_PACK, len + 8);
     if (data_buff == NULL) //no more heap to alloc
     {
-        DEBUG("[PACK]: no more buffer \r\n ");
+        Hid_Log("[PACK]: no more buffer \r\n ");
         return;
     }
     msg_packet_t 	respHead;
@@ -817,7 +817,7 @@ static void Hid_Send(uint8_t *p_data, uint16_t length)
     uint8_t *data_buff = (uint8_t *)APP_MALLOC(PROTO_PACK_DATA_PACK, length);
     if (data_buff == NULL) //no more heap to alloc
     {
-        DEBUG("[PACK]: no more buffer \r\n ");
+        Hid_Log("[PACK]: no more buffer \r\n ");
         return;
     }
     memcpy(data_buff, p_data, length);
@@ -849,23 +849,23 @@ static void Hid_Log(uint8_t cmd, uint8_t *p_data, uint16_t length)
     {
     default:
         return;
-    case DEBUG_KEY_LOG_GPS_RX:
-    case DEBUG_KEY_LOG_GPS_TX:
+    case Hid_Log_KEY_LOG_GPS_RX:
+    case Hid_Log_KEY_LOG_GPS_TX:
         if (ProtoDebug_IsGPSLog() == false)
         {
             return;
         }
         break;
-    case DEBUG_KEY_DOWN_SIM800_FILE:
+    case Hid_Log_KEY_DOWN_SIM800_FILE:
         break;
-    case DEBUG_KEY_LOG_DEBUG:
+    case Hid_Log_KEY_LOG_Hid_Log:
         if (ProtoDebug_IsDebugLog(0xffffffff) == false)
         {
             return;
         }
         break;
-    case DEBUG_KEY_LOG_GSM_RX:
-    case DEBUG_KEY_LOG_GSM_TX:
+    case Hid_Log_KEY_LOG_GSM_RX:
+    case Hid_Log_KEY_LOG_GSM_TX:
         if (ProtoDebug_IsGSMLog() == false)
         {
             return;
@@ -875,7 +875,7 @@ static void Hid_Log(uint8_t cmd, uint8_t *p_data, uint16_t length)
     uint8_t		temp[length + 3];
     uint16_t	chunk_len = 0;
 
-    temp[0] = COMMAND_ID_DEBUG;
+    temp[0] = COMMAND_ID_Hid_Log;
     temp[1] = length + 1;
     temp[2] = cmd;
     memcpy(temp + 3, p_data, length);
@@ -885,7 +885,7 @@ static void Hid_Log(uint8_t cmd, uint8_t *p_data, uint16_t length)
     uint8_t *data_buff = (uint8_t *)APP_MALLOC(PROTO_PACK_DATA_PACK, chunk_len + 8);
     if (data_buff == NULL) //no more heap to alloc
     {
-        DEBUG("[PACK]: no more buffer \r\n ");
+        Hid_Log("[PACK]: no more buffer \r\n ");
         return;
     }
     msg_packet_t 	respHead;
@@ -931,7 +931,7 @@ static void Hid_Log(uint8_t cmd, uint8_t *p_data, uint16_t length)
  */
 void GPSLog_Rx(uint8_t *p_data, uint16_t length)
 {
-    Hid_Log(DEBUG_KEY_LOG_GPS_RX, p_data, length);
+    Hid_Log(Hid_Log_KEY_LOG_GPS_RX, p_data, length);
 }
 
 
@@ -947,7 +947,7 @@ void GPSLog_Rx(uint8_t *p_data, uint16_t length)
  */
 void GSMLog_Rx(uint8_t *p_data, uint16_t length)
 {
-    Hid_Log(DEBUG_KEY_LOG_GSM_RX, p_data, length);
+    Hid_Log(Hid_Log_KEY_LOG_GSM_RX, p_data, length);
 }
 
 
@@ -960,9 +960,9 @@ void GSMLog_Rx(uint8_t *p_data, uint16_t length)
  * @param p_data  接收到的数据，最好是一段数据。
  * @param length 数据的长度
  */
-void GSMLog_DEBUG(uint8_t *p_data, uint16_t length)
+void GSMLog_Hid_Log(uint8_t *p_data, uint16_t length)
 {
-    Hid_Log(DEBUG_KEY_LOG_DEBUG, p_data, length);
+    Hid_Log(Hid_Log_KEY_LOG_Hid_Log, p_data, length);
 }
 
 
@@ -982,7 +982,7 @@ void __HID_LOG(uint32_t flag, const char *name, const char  *format, ...)
     va_start(ap, format);
     (void)vsnprintf(p, sizeof(str) - len, format, ap);
     va_end(ap);
-    GSMLog_DEBUG((uint8_t *)str, strlen(str));
+    GSMLog_Hid_Log((uint8_t *)str, strlen(str));
 
 }
 
@@ -997,7 +997,7 @@ void __HID_LOG(uint32_t flag, const char *name, const char  *format, ...)
  */
 void GSMDown_Rx(uint8_t *p_data, uint16_t length)
 {
-    Hid_Log(DEBUG_KEY_DOWN_SIM800_FILE, p_data, length);
+    Hid_Log(Hid_Log_KEY_DOWN_SIM800_FILE, p_data, length);
 }
 
 
@@ -1012,6 +1012,6 @@ void GSMDown_Rx(uint8_t *p_data, uint16_t length)
  */
 void GSMLog_Tx(uint8_t *p_data, uint16_t length)
 {
-    Hid_Log(DEBUG_KEY_LOG_GSM_TX, p_data, length);
+    Hid_Log(Hid_Log_KEY_LOG_GSM_TX, p_data, length);
 }
 

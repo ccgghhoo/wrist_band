@@ -11,9 +11,9 @@
 
 APP_TIMER_DEF(m_timer_100ms);
 
-static uint8_t m_100ms_timer_started = 0;
+#define   LED_IND_PERIOD   APP_TIMER_TICKS(100)  //100MS
 
-//#define  LEDS_NUMBER           4
+//#define  LEDS_NUMBER          4
 //#define  LED_MODE_ID_RED      0
 //#define  LED_MODE_ID_GREEN    1
 //#define  LED_MODE_ID_BLUE     2
@@ -22,29 +22,31 @@ static uint8_t m_100ms_timer_started = 0;
 #define  LED_MODE_FLAG_OFF        0//off
 #define  LED_MODE_FLAG_ON         1//on always
 #define  LED_MODE_FLAG_CYCLE      2//cycle for ever
-#define  LED_MODE_FLAG_ONCE       3//one time 
+//#define  LED_MODE_FLAG_CYCLE_SET       3//one time 
 #define  LED_MODE_FLAG_CYCLE_SET  4//can be set up 
 
 #define  MODE_BLE_ADVERTISING    		4
-#define  MODE_BLE_CONNECTED      		1
+#define  MODE_BLE_CONNECTED      		8
 #define  MODE_CHARGING                  1
 #define  MODE_CHARG_FULL                0
 
 
 
 const uint8_t  led_ind_mode_0_db[]={LED_MODE_FLAG_OFF,0};                       
-const uint8_t  led_ind_mode_1_db[]={LED_MODE_FLAG_ON,0};                        
+const uint8_t  led_ind_mode_1_db[]={LED_MODE_FLAG_ON,0};  
+
 const uint8_t  led_ind_mode_2_db[]={LED_MODE_FLAG_CYCLE, 5, 25,0};              
 const uint8_t  led_ind_mode_3_db[]={LED_MODE_FLAG_CYCLE,1,29,0};
 const uint8_t  led_ind_mode_4_db[]={LED_MODE_FLAG_CYCLE,1,3,1,25,0};
 const uint8_t  led_ind_mode_5_db[]={LED_MODE_FLAG_CYCLE,3,27,0};
 const uint8_t  led_ind_mode_6_db[]={LED_MODE_FLAG_CYCLE,1,29,0};
 const uint8_t  led_ind_mode_7_db[]={LED_MODE_FLAG_CYCLE,10,20,0};
-const uint8_t  led_ind_mode_8_db[]={LED_MODE_FLAG_ONCE,1,0};                    
-const uint8_t  led_ind_mode_9_db[]={LED_MODE_FLAG_ONCE,1,3,1,0};
-const uint8_t  led_ind_mode_10_db[]={LED_MODE_FLAG_ONCE,1,3,1,3,1,0};
-const uint8_t  led_ind_mode_11_db[]={LED_MODE_FLAG_ONCE,1,3,1,3,1,3,1,0};
-const uint8_t  led_ind_mode_12_db[]={LED_MODE_FLAG_ONCE,1,3,1,3,1,3,1,3,1,3,0};
+
+const uint8_t  led_ind_mode_8_db[]={LED_MODE_FLAG_CYCLE_SET,1,10,0};                    
+const uint8_t  led_ind_mode_9_db[]={LED_MODE_FLAG_CYCLE_SET,1,3,0};
+const uint8_t  led_ind_mode_10_db[]={LED_MODE_FLAG_CYCLE_SET,1,3,1,3,0};
+const uint8_t  led_ind_mode_11_db[]={LED_MODE_FLAG_CYCLE_SET,1,3,1,3,1,3,0};
+const uint8_t  led_ind_mode_12_db[]={LED_MODE_FLAG_CYCLE_SET,1,3,1,3,1,3,1,3,1,3,0};
 
 const uint8_t * p_led_db[] =
 {
@@ -64,7 +66,7 @@ const uint8_t * p_led_db[] =
 };
 
 static led_ind_t   m_led_ind[LEDS_NUMBER] ;
-
+static uint8_t     m_100ms_timer_started = 0;
 
 
 static void led_ind_mode_process(void);
@@ -110,6 +112,8 @@ void led_ind_init(void)
 void led_mode_set(uint8_t led_id , uint8_t mode, uint8_t  cycles)
 {
       uint32_t err_code;
+      
+      bsp_board_led_off(led_id);
            
       m_led_ind[led_id].led_db_item_index=0;
       m_led_ind[led_id].led_time_cnt = 0;
@@ -128,11 +132,11 @@ void led_mode_set(uint8_t led_id , uint8_t mode, uint8_t  cycles)
             
       if(m_100ms_timer_started==0)
       {
-          err_code = app_timer_start(m_timer_100ms, APP_TIMER_TICKS(100), NULL);                
+          err_code = app_timer_start(m_timer_100ms, LED_IND_PERIOD, NULL);                
           APP_ERROR_CHECK(err_code);
       }
       
-      led_ind_mode_process();
+      //led_ind_mode_process();
            
 }
 
@@ -185,21 +189,23 @@ static void led_ind_mode_process(void)
                             m_led_ind[i].led_time_cnt = 0;
                             bsp_board_led_off(i);
                         }
-                        else if(m_led_ind[i].led_cycle_flag==LED_MODE_FLAG_ONCE)
-                        {
-                            m_led_ind[i].led_db_item_index=0;
-                            m_led_ind[i].led_time_cnt = 0;
-                            bsp_board_led_off(i);
-                            m_led_ind[i].led_cycle_flag=0;
-                        }
+//                        else if(m_led_ind[i].led_cycle_flag==LED_MODE_FLAG_CYCLE_ONCE)
+//                        {
+//                            m_led_ind[i].led_db_item_index=0;
+//                            m_led_ind[i].led_time_cnt = 0;
+//                            bsp_board_led_off(i);
+//                            m_led_ind[i].led_cycle_flag=0;
+//                        }
                         else if(m_led_ind[i].led_cycle_flag==LED_MODE_FLAG_CYCLE_SET)
                         {
+                            if(m_led_ind[i].led_cycle_cnt)m_led_ind[i].led_cycle_cnt--;
+                              
                             if(m_led_ind[i].led_cycle_cnt)
                             {
                                 m_led_ind[i].led_db_item_index=0;
-                                m_led_ind[i].led_time_cnt = 0;
+                                m_led_ind[i].led_time_cnt--;
                                 bsp_board_led_off(i);
-                            }
+                            }                            
                             else
                             {
                                 m_led_ind[i].led_db_item_index=0;
@@ -228,7 +234,7 @@ void  app_led_indicate_set(ind_mode_t  ind_mode)
         break;
                
      case LED_MODE_BLE_CONNECTED:
-        led_mode_set(LED_MODE_ID_GREEN, MODE_BLE_CONNECTED, 0);
+        led_mode_set(LED_MODE_ID_GREEN, MODE_BLE_CONNECTED, 10);
         break;
         
      case LED_MODE_CHARGING:
