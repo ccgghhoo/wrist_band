@@ -51,23 +51,9 @@
  * with 'YOUR_JOB' indicates where and how you can customize.
  */
 
-#include <stdbool.h>
-#include <stdint.h>
-#include <string.h>
-
-
 #include "nrf_pwr_mgmt.h"
-#include "nrf_delay.h"
-
-#include "nrf_log.h"
-#include "nrf_log_ctrl.h"
-#include "nrf_log_default_backends.h"
-
-#include "peripheral_role.h"
-#include "batt_adc_detect.h"   
-#include "dfu.h"
-#include "app_evt.h"  
-#include "app_nus.h"
+//#include "nrf_log_default_backends.h"
+   
 #include "app_init.h"
 
 
@@ -117,14 +103,10 @@ static void main_loop(void)
     app_evt_poll();
 
 
-    //app_wdt_reload(); 
+    app_wdt_reload(); 
     
-    
+    //nrf_delay_ms(4100);//test bootloader WDT=4000ms
 }
-
-
-
-
 
 
 /**@brief Function for application main entry.
@@ -145,14 +127,19 @@ int main(void)
     app_init();
 
     cpy_fw();  
-
+    
+//    float resu  = _sqrt(999.0);
+//    float resu1 = Q_rsqrt(0.0009);
+//    
+//    //NRF_LOG_INFO("squart =%x ", (int)resu);
+//    NRF_LOG_INFO("squart =%x, %x", resu, resu1);
     
     for (;;)
     {
         NRF_LOG_FLUSH();
         
         main_loop();
-
+                
         idle_state_handle();
     }
 }

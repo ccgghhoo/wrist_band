@@ -18,7 +18,7 @@ static float    	         m_gsensor_period_sum      = 0;
 md_gsensor_degree_t 	     m_new_degree_value;
 
 
-static float inv_sqrt(float x)
+static float inv_sqrt(float x)  //高效的开方算法
 {
     float xhalf = 0.5f * x;
     int i = *(int *)&x;

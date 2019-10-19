@@ -9,7 +9,6 @@
 #include "nrf_gpio.h"
 #include "crc16.h"
 #include "nrf_fstorage_sd.h"
-//#include "app_spi_drv.h"
 #include "app_flash_drv.h"
 #include "app_nus.h"
 #include "boards.h"

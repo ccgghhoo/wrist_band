@@ -1,16 +1,7 @@
-#include <stdbool.h>
-#include <stdint.h>
-#include <string.h>
-#include "proto.h"
-#include "dfu.h"
-#include "nrf_delay.h"
-#include "app_evt.h"
-#include "DateTime.h"
-#include "app_motion_detect.h"
-#include "peripheral_role.h"
-#include "batt_adc_detect.h"   
-#include "app_led_ind.h" 
-#include "app_fds.h"
+
+#include "app_init.h"
+
+
 
 
 int32_t DeviceReset_CallBack()
@@ -52,6 +43,6 @@ void  app_init(void)
      
      app_fds_init();
 	 
-     
+     //app_wdt_init();  //wdt is inited in bootloader ,so this call is invalid 
      
 }
