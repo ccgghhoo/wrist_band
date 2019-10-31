@@ -29,6 +29,9 @@
 #include "app_fds.h"
 #include "app_wdt.h"
 #include "app_nus.h"
+#include "indicator.h"
+#include "sport_degree_count.h"
+
 
 
 

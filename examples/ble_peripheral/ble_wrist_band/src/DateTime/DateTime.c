@@ -38,11 +38,11 @@ volatile uint32_t 				second_ticks;
 
 static DataTimeInfo_t sg_sDataTimeInfo = {
     .curTime = {
-        .year = 18,
-        .month = 7,
-        .day = 1,
+        .year = 19,
+        .month = 10,
+        .day = 22,
         .hour = 8,
-        .minute = 0,
+        .minute = 55,
         .second = 0,
     },
     .lstRequest = MAX_UPDATA_TCP_LIMIT,
@@ -280,6 +280,8 @@ void Second_TimeoutCallBack(void *p)
     second_ticks++;
     ticks_in_run++;
     sg_sDataTimeInfo.lstRequest++;
+    
+    DateTime_IncreaseHandler();   //chen
 
 }
 /**
@@ -316,7 +318,7 @@ static uint32_t DateTime_DateTime2UTC(datetime_t time, int32_t zone_offset)
  */
 void DateTime_IncreaseHandler(void)
 {
-    if (DateTime_IsValid() == false)
+    if (DateTime_IsValid() == false)  //chen
     {
         second_ticks = 0;
         return;
@@ -723,7 +725,30 @@ uint32_t  DebugTime_GetUpdateTime(int32_t zone_offset)
     return sg_sDataTimeInfo.updateTimeUtc + (zone_offset * 15 * 60);
 }
 
-
+void  init_utc_from_default_date(void)
+{
+        datetime_t datetime;
+        datetime.year = sg_sDataTimeInfo.curTime.year;
+        datetime.month = sg_sDataTimeInfo.curTime.month;
+        datetime.day = sg_sDataTimeInfo.curTime.day;
+        datetime.hour = sg_sDataTimeInfo.curTime.hour;
+        datetime.minute = sg_sDataTimeInfo.curTime.minute;
+        datetime.second = sg_sDataTimeInfo.curTime.second;
+        
+        uint32_t utc = DateTime_DateTime2UTC(datetime, 0);// date to seconds , 8*4  beijing:-8hours
+        //struct tm *now_time = localtime(&utc);
+        //datetime_t *now_time = DateTime_UTC2DateTime(utc); //seconds to date
+        
+        sg_sDataTimeInfo.IsTimeValid = true;
+        second_ticks = 0; // clear time tick
+        sg_sDataTimeInfo.utc = utc;
+        
+        //NRF_LOG_INFO("UTC default seconds :%d", utc);        
+        //NRF_LOG_HEXDUMP_INFO((uint8_t *)now_time, 36);
+        
+        sg_sDataTimeInfo.liveTick = 0;   
+    
+}
 
 /**
  * ≥ı ºªØ
@@ -735,8 +760,10 @@ uint32_t  DebugTime_GetUpdateTime(int32_t zone_offset)
 int DateTime_Init()
 {
     HalRTC_Init(Second_TimeoutCallBack);
+    init_utc_from_default_date();  //chen
     ticks_in_run = 0;
     second_ticks = 0;
+    
     return 0;
 }
 

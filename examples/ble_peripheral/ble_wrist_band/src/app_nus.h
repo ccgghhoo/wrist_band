@@ -22,6 +22,7 @@ void app_nus_log_ble(uint8_t *p_data, uint16_t len); //chen
 bool BLE_IsConnect();
 
 uint32_t app_nus_send_data(uint8_t * data, uint16_t * len);
+void ble_sos_key_send(void);
 
 #endif 
 

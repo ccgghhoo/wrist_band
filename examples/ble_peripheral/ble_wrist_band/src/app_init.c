@@ -23,7 +23,8 @@ void  hal_init(void)
 {
     timers_init();
     buttons_leds_init();
-    led_ind_init();
+    //led_ind_init();
+    Indicator_Init();
 	DateTime_Init();
     md_init();
     batt_adc_init();

@@ -28,18 +28,8 @@
 #include "nrf_ble_qwr.h"
 #include "nrf_pwr_mgmt.h"
 
-#include "ble_nus.h"
 
-#include "app_nus.h"
-#include "peripheral_role.h"
-#include "dev_config.get.h"
-#include "dev_config.factory.h"
-#include "crc16.h"
-#include "batt_adc_detect.h"
-
-#include "nrf_log.h"
-#include "nrf_log_ctrl.h"
-#include "nrf_log_default_backends.h"
+#include  "app_init.h"
 
 
 #define DEV_NAME                        "eview_band2"                       /**< Name of device. Will be included in the advertising data. */
@@ -381,7 +371,7 @@ static void advertising_start(void)
  */
 static void on_adv_evt(ble_adv_evt_t ble_adv_evt)
 {
-    ret_code_t err_code;
+    //ret_code_t err_code;
 
     switch (ble_adv_evt)
     {
@@ -389,7 +379,8 @@ static void on_adv_evt(ble_adv_evt_t ble_adv_evt)
             NRF_LOG_INFO("Fast advertising.");
             //err_code = bsp_indication_set(BSP_INDICATE_ADVERTISING);
             //APP_ERROR_CHECK(err_code);
-            app_led_indicate_set(LED_MODE_BLE_ADVERTISING);
+            //app_led_indicate_set(LED_FUN_BLE_ADVERTISING);
+            Indicator_Evt(ALERT_TYPE_BLE_ADV);
             break;
 
         case BLE_ADV_EVT_IDLE:
@@ -397,7 +388,7 @@ static void on_adv_evt(ble_adv_evt_t ble_adv_evt)
           
             //advertising_start();
             //NRF_LOG_INFO("start advertising");
-            
+            Indicator_Evt(ALERT_TYPE_BLE_ADV_END);
             break;
 
         default:
@@ -426,13 +417,17 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
 //            advertising_init_2(true);           
 //            sd_ble_gap_adv_start(m_advertising.adv_handle, APP_BLE_CONN_CFG_TAG);
             ///bsp_indication_set(BSP_INDICATE_ADVERTISING);
-            app_led_indicate_set(LED_MODE_BLE_ADVERTISING);
+            //app_led_indicate_set(LED_FUN_BLE_ADVERTISING);
+            Indicator_Evt(ALERT_TYPE_BLE_DISCONNECTED);
+            Indicator_Evt(ALERT_TYPE_BLE_ADV);
             break;
 
         case BLE_GAP_EVT_CONNECTED:
             NRF_LOG_INFO("Connected.");
             
-            app_led_indicate_set(LED_MODE_BLE_CONNECTED); 
+            //app_led_indicate_set(LED_FUN_BLE_CONNECTED); 
+            Indicator_Evt(ALERT_TYPE_BLE_CONNECTED);
+            Indicator_Evt(ALERT_TYPE_BLE_ADV_END);
             
             m_conn_handle = p_ble_evt->evt.gap_evt.conn_handle;
             err_code = nrf_ble_qwr_conn_handle_assign(&m_qwr, m_conn_handle);
@@ -562,7 +557,8 @@ static void bsp_event_handler(bsp_event_t event)
 //            uint8_t string[]="button pressed long time, SOS!!";
 //            uint16_t len=strlen(string);
 //            //uint32_t reslt=app_nus_send_data(string, &len);
-//            ble_send_proto_data_pack(string, len, 0);
+//            ble_send_proto_data_pack(string, len, 0); 
+            set_app_evt(APP_EVT_SOS_ALARM);    
             ble_sos_key_send();
             break; // 
 
@@ -579,7 +575,7 @@ void buttons_leds_init(void)
 {
     ret_code_t err_code;
 
-    err_code = bsp_init(BSP_INIT_LEDS | BSP_INIT_BUTTONS, bsp_event_handler);
+    err_code = bsp_init(BSP_INIT_BUTTONS, bsp_event_handler);
     APP_ERROR_CHECK(err_code);
 
     err_code = user_app_btn_init();
@@ -645,7 +641,7 @@ static void advertising_init_2(bool connectable)
 {
     ret_code_t    err_code;
     ble_advdata_t advdata;
-    ble_advdata_t srdata;
+    //ble_advdata_t srdata;
     
     ble_advdata_manuf_data_t manuf_data;
 

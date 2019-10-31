@@ -1194,7 +1194,16 @@
             </file>
         </group>
         <group>
-            <name>eview_protocol</name>
+            <name>EviewParam</name>
+            <file>
+                <name>$PROJ_DIR$\..\..\..\src\EviewParam\dev_conf.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\..\..\src\EviewParam\dev_config.get.c</name>
+            </file>
+        </group>
+        <group>
+            <name>EviewProtocol</name>
             <group>
                 <name>DFU</name>
                 <file>
@@ -1216,6 +1225,9 @@
             <group>
                 <name>TrackerProto</name>
                 <file>
+                    <name>$PROJ_DIR$\..\..\..\src\EviewProto\TrackerProto\proto.blebase.c</name>
+                </file>
+                <file>
                     <name>$PROJ_DIR$\..\..\..\src\EviewProto\TrackerProto\proto.c</name>
                 </file>
                 <file>
@@ -1233,24 +1245,51 @@
                 <file>
                     <name>$PROJ_DIR$\..\..\..\src\EviewProto\TrackerProto\proto.pack.c</name>
                 </file>
+                <file>
+                    <name>$PROJ_DIR$\..\..\..\src\EviewProto\TrackerProto\proto.record.c</name>
+                </file>
             </group>
             <file>
                 <name>$PROJ_DIR$\..\..\..\src\EviewProto\EpbProto.c</name>
             </file>
         </group>
         <group>
-            <name>EviewParam</name>
-            <file>
-                <name>$PROJ_DIR$\..\..\..\src\EviewParam\dev_conf.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\..\..\src\EviewParam\dev_config.get.c</name>
-            </file>
-        </group>
-        <group>
             <name>heap</name>
             <file>
                 <name>$PROJ_DIR$\..\..\..\src\heap\LibHeap.c</name>
+            </file>
+        </group>
+        <group>
+            <name>MotionModuel</name>
+            <file>
+                <name>$PROJ_DIR$\..\..\..\src\algorithm\app_fir_filter.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\..\..\src\algorithm\fall_detect.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\..\..\src\algorithm\g_sensor_motion_lib.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\..\..\src\algorithm\LIS3DH_drv.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\..\..\src\algorithm\m_interface.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\..\..\src\algorithm\m_step.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\..\..\src\algorithm\sport_degree_count.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\..\..\src\algorithm\state_detect.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\..\..\src\algorithm\Step_count.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\..\..\src\algorithm\tilt.c</name>
             </file>
         </group>
         <group>
@@ -1263,13 +1302,22 @@
             <name>$PROJ_DIR$\..\..\..\src\app_evt.c</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\..\..\..\src\app_fds.c</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\..\..\..\src\app_flash_drv.c</name>
         </file>
         <file>
             <name>$PROJ_DIR$\..\..\..\src\app_init.c</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\..\..\..\src\app_motion_detect.c</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\..\..\..\src\app_nus.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\..\src\app_wdt.c</name>
         </file>
         <file>
             <name>$PROJ_DIR$\..\..\..\src\batt_adc_detect.c</name>
@@ -1279,6 +1327,9 @@
         </file>
         <file>
             <name>$PROJ_DIR$\..\..\..\fw.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\..\src\indicator.c</name>
         </file>
         <file>
             <name>$PROJ_DIR$\..\..\..\main.c</name>
@@ -1301,6 +1352,9 @@
     </group>
     <group>
         <name>Board Support</name>
+        <file>
+            <name>$PROJ_DIR$\..\..\..\src\buttons\app_led_ind.c</name>
+        </file>
         <file>
             <name>$PROJ_DIR$\..\..\..\src\buttons\bsp.c</name>
         </file>

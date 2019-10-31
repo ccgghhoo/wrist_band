@@ -6,7 +6,8 @@
 
 #define APP_EVT_1S                              0x0001
 #define APP_EVT_PROTOCOL_DATA_HANDLE            0x0002
-#define APP_EVT_DFU_RESET                       0x0004 
+#define APP_EVT_DFU_RESET                       0x0004
+#define APP_EVT_SOS_ALARM                       0x0008
 
 
 

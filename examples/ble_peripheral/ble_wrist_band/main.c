@@ -126,7 +126,10 @@ int main(void)
     
     app_init();
 
-    cpy_fw();  
+    cpy_fw();
+    
+    battery_level_cal();
+    batt_voltage_get(); 
     
 //    float resu  = _sqrt(999.0);
 //    float resu1 = Q_rsqrt(0.0009);

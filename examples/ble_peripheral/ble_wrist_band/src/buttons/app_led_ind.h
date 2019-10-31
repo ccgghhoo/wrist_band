@@ -31,21 +31,30 @@ typedef struct
 
 typedef enum
 {
-    LED_MODE_OFF=0,
-    LED_MODE_ON,
-    LED_MODE_BLE_ADVERTISING,
-    LED_MODE_BLE_CONNECTED,
-    LED_MODE_CHARGING,
-    LED_MODE_CHARG_FULL,         
+    LED_FUN_OFF=0,
+    LED_FUN_ON,
+    LED_FUN_BLE_ADVERTISING,
+    LED_FUN_BLE_CONNECTED,
+    LED_FUN_CHARGING,
+    LED_FUN_CHARG_FULL,         
     
     
-}ind_mode_t;
+}ind_fun_t;
+
+#define  LED_FUN_FLAG_OFF               (1<<0)
+#define  LED_FUN_FLAG_ON                (1<<1)
+#define  LED_FUN_FLAG_CHARGING          (1<<2)
+#define  LED_FUN_FLAG_CHARG_FULL        (1<<3)  
+#define  LED_FUN_FLAG_ADVERTISING        (1<<4)
+#define  LED_FUN_FLAG_CONNECTED         (1<<5)
+
+
 
  
 //void led_mode_set(uint8_t led_id ,  uint8_t mode, uint8_t  cycles);
 void led_ind_init(void);
 //void led_ind_all_off(void);
-void  app_led_indicate_set(ind_mode_t  ind_mode);
+void  app_led_indicate_set(ind_fun_t  ind_mode);
 
 #endif /* */
 

@@ -1,6 +1,7 @@
 #include "sport_degree_count.h"
-//#include "Datetime.h"
+#include "Datetime.h"
 //#include "HalActivityCFS.h"
+#include "app_fds.h"
 #if 1
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
@@ -13,7 +14,7 @@
 #define SHORT_ABS(x)        				(( ((x) & 0x8000) > 0) ? ((~x) + 1)  : (x) )
 #define SAMPLE_RATE
 
-static float 		     m_one_second_value_sum    = 0;
+static float 		         m_one_second_value_sum    = 0;
 static float    	         m_gsensor_period_sum      = 0;
 md_gsensor_degree_t 	     m_new_degree_value;
 
@@ -69,28 +70,32 @@ void md_module_period_one_second(void) /// ON SECONDS
 }
 
 
-//void md_module_period_save(void) ///10 MINTUNES EVENT
-//{
+void md_module_period_save(void) ///10 MINTUNES EVENT
+{
 //    if (m_gsensor_period_sum < 0.001) //判定数值是否过小
 //    {
 //        //  return;
 //    }
-//    //get the period sum
-//    float temp = m_gsensor_period_sum * 10000; //
-//    m_new_degree_value.gsensor_point_value = (uint32_t)temp; // for module test
-//    m_new_degree_value.utc = UTC_GetValue();
+    
+    //get the period sum
+    float temp = m_gsensor_period_sum * 10000; //
+    m_new_degree_value.gsensor_point_value = (uint32_t)temp; // for module test
+    m_new_degree_value.utc = UTC_GetValue();//RunTime_GetValue();;//
 
 
-//    if (m_new_degree_value.gsensor_point_value  < 10)
-//    {
-//        m_new_degree_value.gsensor_point_value = 10;
-//    }
+    if (m_new_degree_value.gsensor_point_value  < 10)
+    {
+        m_new_degree_value.gsensor_point_value = 10;
+    }
 
-//    HalActivityCFS_Write((uint8_t *)&m_new_degree_value, sizeof(md_gsensor_degree_t)); 
-//    //      bool flag = Tinyfs_push_new_record((uint8_t *)&m_new_degree_value, sizeof(md_gsensor_degree_t));
+    
+    //HalActivityCFS_Write((uint8_t *)&m_new_degree_value, sizeof(md_gsensor_degree_t)); 
+    //bool flag = Tinyfs_push_new_record((uint8_t *)&m_new_degree_value, sizeof(md_gsensor_degree_t));
+    
+    sport_level_data_save((uint32_t *)&m_new_degree_value, sizeof(md_gsensor_degree_t));
 
-//    NRF_LOG_HEXDUMP_INFO((uint8_t *)&m_new_degree_value, 8);
+    NRF_LOG_HEXDUMP_INFO((uint8_t *)&m_new_degree_value, 8);
 
-//    //clear the sum
-//    m_gsensor_period_sum = 0;
-//}
+    //clear the sum
+    m_gsensor_period_sum = 0;
+}

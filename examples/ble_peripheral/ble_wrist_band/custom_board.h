@@ -46,32 +46,37 @@ extern "C" {
 
 #include "nrf_gpio.h"
 
-// LEDs definitions 
-#define LEDS_NUMBER         2
+//// LEDs definitions 
+//#define LEDS_NUMBER         0
+//
+//#define LED_GREEN          17
+//#define LED_MOTOR          24    //motor
+//#define LED_RED            19
+//#define LED_BLUE           20
+//
+//
+//#define LEDS_ACTIVE_STATE   0
+//
+//#define LEDS_INV_MASK       LEDS_MASK
+//
+//#define LEDS_LIST           { LED_GREEN, LED_MOTOR, /*LED_RED, LED_BLUE*/ }
+//
+//#define BSP_LED_0           LED_GREEN
+//#define BSP_LED_1           LED_MOTOR
+//#define BSP_LED_2           LED_RED
+//#define BSP_LED_3           LED_BLUE 
+//
+//
+//#define LED_MODE_ID_GREEN    0  //对应LEDS_LIST中 index
+//#define LED_MODE_ID_MOTOR    1  
+//#define LED_MODE_ID_RED      2   
+//#define LED_MODE_ID_BLUE     3
 
-#define LED_GREEN          17
-#define LED_MOTOR          24    //motor
-#define LED_RED            19
-#define LED_BLUE           20
-
-
-#define LEDS_ACTIVE_STATE   0
-
-#define LEDS_INV_MASK       LEDS_MASK
-
-#define LEDS_LIST           { LED_GREEN, LED_MOTOR, /*LED_RED, LED_BLUE*/ }
-
-#define BSP_LED_0           LED_GREEN
-#define BSP_LED_1           LED_MOTOR
-#define BSP_LED_2           LED_RED
-#define BSP_LED_3           LED_BLUE 
-
-
-#define LED_MODE_ID_GREEN    0  //对应LEDS_LIST中 index
-#define LED_MODE_ID_MOTOR    1  
-#define LED_MODE_ID_RED      2   
-#define LED_MODE_ID_BLUE     3
- 
+//=================================================    
+#define  BLUE_LED_PIN_NUMBER    (-1)  
+#define  GREEN_LED_PIN_NUMBER   (-1)
+#define  RED_LED_PIN_NUMBER     17 
+#define  MOTOR_PIN_NUMBER       24  
 
   
  
@@ -98,7 +103,7 @@ extern "C" {
 #define LIS3DH_INT2_PIN     18
 #define LIS3DH_INT1_PIN     21
 #define MOTOR_PIN           24 
-#define USB_CHARG_IND_PIN   8
+#define USB_CHARG_IND_PIN   30//8
 #define CHARG_EN_PIN        6 
 #define BATT_ADC_PIN        5  
   

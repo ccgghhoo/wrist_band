@@ -9,11 +9,14 @@
 #include "nrf_log.h"
 
 
+#define  LEDS_NUMBER          0
+#if LEDS_NUMBER>0
+
 APP_TIMER_DEF(m_timer_100ms);
 
 #define   LED_IND_PERIOD   APP_TIMER_TICKS(100)  //100MS
 
-//#define  LEDS_NUMBER          4
+
 //#define  LED_MODE_ID_RED      0
 //#define  LED_MODE_ID_GREEN    1
 //#define  LED_MODE_ID_BLUE     2
@@ -25,10 +28,12 @@ APP_TIMER_DEF(m_timer_100ms);
 //#define  LED_MODE_FLAG_CYCLE_SET       3//one time 
 #define  LED_MODE_FLAG_CYCLE_SET  4//can be set up 
 
+#define  MODE_OFF                       0
+#define  MODE_ON                        1
 #define  MODE_BLE_ADVERTISING    		4
-#define  MODE_BLE_CONNECTED      		8
-#define  MODE_CHARGING                  1
-#define  MODE_CHARG_FULL                0
+#define  MODE_BLE_CONNECTED      		0
+#define  MODE_CHARGING                  3
+#define  MODE_CHARG_FULL                1
 
 
 
@@ -67,6 +72,7 @@ const uint8_t * p_led_db[] =
 
 static led_ind_t   m_led_ind[LEDS_NUMBER] ;
 static uint8_t     m_100ms_timer_started = 0;
+static uint32_t    m_led_ind_fun_flag = 0;
 
 
 static void led_ind_mode_process(void);
@@ -80,14 +86,15 @@ static void timer_100ms_handler(void * p_context)
           
     for(uint32_t i=0; i<LEDS_NUMBER; i++)
     {
-    		if(m_led_ind[i]. led_cycle_flag>=1)
-    		{
-        		return;
-    		}
+        if(m_led_ind[i]. led_cycle_flag>=1)
+        {
+            return;
+        }
     }
         
     led_ind_all_off();
     m_100ms_timer_started = 0;
+    m_led_ind_fun_flag = 0;
     uint32_t err_code;
     err_code = app_timer_stop(m_timer_100ms);
     
@@ -106,11 +113,28 @@ void led_ind_init(void)
     
 	led_ind_all_off();
     
+    
+}
+
+void app_led_ind_set_fun_flag(ind_fun_t  ind_mode)
+{
+    m_led_ind_fun_flag |= (1<<ind_mode);  
+}
+
+void app_led_ind_clear_fun_flag(ind_fun_t  ind_mode)
+{
+    m_led_ind_fun_flag &= ~(1<<ind_mode);     
 }
 
 
 void led_mode_set(uint8_t led_id , uint8_t mode, uint8_t  cycles)
 {
+           
+      if(m_led_ind[led_id].led_ind_mode==mode && m_100ms_timer_started)
+      {
+          return;
+      }
+      
       uint32_t err_code;
       
       bsp_board_led_off(led_id);
@@ -142,11 +166,12 @@ void led_mode_set(uint8_t led_id , uint8_t mode, uint8_t  cycles)
 
 static void led_ind_all_off(void)
 {
-     for(uint32_t i=0; i<LEDS_NUMBER; i++)
+    for(uint32_t i=0; i<LEDS_NUMBER; i++)
     {
-		led_mode_set(i, LED_MODE_OFF, 0);
-    }
+		led_mode_set(i, LED_FUN_OFF, 0);
+    }    
     led_ind_mode_process();
+    
 }
 
 static void led_ind_mode_process(void)
@@ -224,28 +249,62 @@ static void led_ind_mode_process(void)
 
 
 
-void  app_led_indicate_set(ind_mode_t  ind_mode)
+void  app_led_indicate_set(ind_fun_t  ind_mode)
 {
-  
+    //一个灯上同时启用多个功能指示时 需要确定优先级
+//    ind_fun_t ind_fun_temp;
+//    if(m_led_ind_fun_flag && LED_FUN_FLAG_CHARGING)
+//    {
+//        ind_fun_temp = LED_FUN_CHARGING;
+//    }
+//    else if(m_led_ind_fun_flag && LED_FUN_FLAG_CHARG_FULL)
+//    {
+//        ind_fun_temp = LED_FUN_CHARG_FULL;
+//    }
+//    else
+//    {
+//        ind_fun_temp = ind_mode;
+//    }
+//        
+
     switch(ind_mode)
     {
-     case LED_MODE_BLE_ADVERTISING:
-        led_mode_set(LED_MODE_ID_GREEN,  MODE_BLE_ADVERTISING, 0);
+     case LED_FUN_BLE_ADVERTISING:
+        app_led_ind_set_fun_flag(LED_FUN_BLE_ADVERTISING);
+        app_led_ind_clear_fun_flag(LED_FUN_BLE_CONNECTED);
+        led_mode_set(LED_MODE_ID_GREEN,  MODE_BLE_ADVERTISING, 0);        
         break;
                
-     case LED_MODE_BLE_CONNECTED:
+     case LED_FUN_BLE_CONNECTED:
+        app_led_ind_set_fun_flag(LED_FUN_BLE_CONNECTED);
+        app_led_ind_clear_fun_flag(LED_FUN_BLE_ADVERTISING);
         led_mode_set(LED_MODE_ID_GREEN, MODE_BLE_CONNECTED, 10);
         break;
         
-     case LED_MODE_CHARGING:
+     case LED_FUN_CHARGING:
+        app_led_ind_set_fun_flag(LED_FUN_CHARGING);
+        app_led_ind_clear_fun_flag(LED_FUN_CHARG_FULL);
         led_mode_set(LED_MODE_ID_GREEN, MODE_CHARGING, 0);
+        break; 
+        
+     case LED_FUN_CHARG_FULL:
+        app_led_ind_set_fun_flag(LED_FUN_CHARG_FULL);
+        app_led_ind_clear_fun_flag(LED_FUN_CHARGING);
+        led_mode_set(LED_MODE_ID_GREEN, MODE_CHARGING, 0);
+        break;     
+     default:
+        //app_led_ind_set_fun_flag(LED_FUN_BLE_CONNECTED);
+        led_mode_set(LED_MODE_ID_GREEN, MODE_OFF, 0);
+        //m_led_ind_fun_flag = 0;
         break;   
-      
+              
     }
+    
   
   
 }
 
+#endif
 
 
 

@@ -28,9 +28,7 @@ void app_evt_poll(void)
   
   if(check_app_evt(APP_EVT_1S))
   {
-      uint32_t m_user_time_senconds=RunTime_GetValue();
-      
-      
+      uint32_t m_user_time_senconds= UTC_GetValue();//RunTime_GetValue();           
       clear_app_evt(APP_EVT_1S);
       if(m_user_time_senconds%60==0)
       {
@@ -38,20 +36,29 @@ void app_evt_poll(void)
           batt_voltage_get();      
       }
       
-      if(m_user_time_senconds%300==0)
+#if 0 //def DEGREE
+      
+       md_module_period_one_second();
+     
+      if(m_user_time_senconds%300==0)//300
       {
-          history_data_save();//for test
+          md_module_period_save();//for test
       }
       
+#endif      
+      //read_file_data_test();  //test OK
       uint8_t ret = DateTime_GetFlags();
       
       if ((ret & RTC_CHANGE_IN_DAY) > 0)       //new day
+      //if ((ret & RTC_CHANGE_IN_HOUR) > 0) 
+      //if ((ret & RTC_CHANGE_IN_MINUTE) > 0)
       {
            app_fds_new_day_handle();        
       }
       
-            
       batt_charging_check();
+      batt_status_get();      
+           
       if(batt_state_changed())      
       {       
           batt_clear_adv_update_flag();

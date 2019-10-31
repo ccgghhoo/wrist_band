@@ -30,7 +30,7 @@ static const EpbProtoCmd_t scg_sCmds[] =
         .keys = scg_sProtoControlKeys,
         .pKeySize = &s_ucProtoControlKeySize,
     },
-*/
+
     {
         //0x01
         .cmd = COMMAND_ID_DATA,
@@ -38,6 +38,7 @@ static const EpbProtoCmd_t scg_sCmds[] =
         .keys = scg_sProtoRecordKeys,
         .pKeySize = &s_ucProtoRecodeKeySize,
     },
+*/    
 
     {
         //0x7E  dfu
@@ -83,13 +84,13 @@ static const EpbProtoCmd_t scg_sCmds[] =
         .keys = scg_sProtoFactroyKeys,
         .pKeySize = &s_sProtoFactroyKeysSize,
     },
-
+*/
     {
         .cmd = COMMAND_ID_BLE_BASE,
         .handle = NULL,
         .keys = scg_sProtoBLEBaseKeys,
         .pKeySize = &s_ucProtoBLEBaseKeySize,
-    },*/
+    },
 
 };
 

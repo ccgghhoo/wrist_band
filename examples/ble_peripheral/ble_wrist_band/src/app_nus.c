@@ -385,7 +385,7 @@ void ble_send_proto_data_pack(uint8_t *data, uint16_t len, uint8_t flag)
 void ble_sos_key_send(void)
 {
     uint8_t  databuff[10];
-    
+        
     databuff[0]=COMMAND_ID_DATA;
     databuff[1]= 5;
     databuff[2]=DATA_KEY_ALARM_CODE;
