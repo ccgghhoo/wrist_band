@@ -11,7 +11,11 @@
 
 #define  BATT_SAMPLE_NUM        8
 #define  BATT_AN_PIN            NRF_SAADC_INPUT_AIN3
-#define  ADVALUE_TO_MV_RATIO    600*11/4096
+#define  ADVALUE_TO_MV_RATIO    600*1117/(100*4096)//600*11/4096 //根据电路修正值比例为11.17
+#define MIN_BATTER_ADC  			2013  	//3.3v
+#define MIN_BATTER_ADC_CHARGING     (MIN_BATTER_ADC+50)
+#define MAX_BATTER_ADC  			2503  	//4.1v
+#define BATT_LOW_POWER_LEVEL        20
 
 typedef struct
 {
@@ -75,9 +79,13 @@ void batt_adc_init(void)
         NRF_DRV_SAADC_DEFAULT_CHANNEL_CONFIG_SE(BATT_AN_PIN);
     
     channel_config.gain = NRF_SAADC_GAIN1;  //gain=1
-    //    nrfx_saadc_config_t  saadc_config = NRFX_SAADC_DEFAULT_CONFIG;
-    //    saadc_config.low_power_mode=1;
-    err_code = nrf_drv_saadc_init(NULL, saadc_callback);
+    nrfx_saadc_config_t  saadc_config;
+    saadc_config.low_power_mode=1;
+    saadc_config.resolution = NRF_SAADC_RESOLUTION_12BIT;
+    saadc_config.oversample = NRF_SAADC_OVERSAMPLE_DISABLED;
+    saadc_config.interrupt_priority = 6;
+    err_code = nrf_drv_saadc_init(&saadc_config, NULL/*saadc_callback*/);
+    //err_code = nrf_drv_saadc_init(NULL, saadc_callback);//用默认的竟然不行 不知道为什么
     APP_ERROR_CHECK(err_code);
     
     err_code = nrfx_saadc_channel_init(0, &channel_config);
@@ -139,6 +147,7 @@ int16_t batt_voltage_get(void)
     uint32_t batt_mv;
     bat_value=batt_adc_value_av_get();
     batt_mv = bat_value*ADVALUE_TO_MV_RATIO;
+    //NRF_LOG_INFO("batt advalue: %d  ", bat_value);
     NRF_LOG_INFO("batt mv: %d  ", batt_mv); 
     return batt_mv;
 }
@@ -147,10 +156,6 @@ int16_t batt_voltage_get(void)
 
 uint8_t battery_level_cal(void)
 {
-#define MIN_BATTER_ADC  			2048  	//3.3v
-#define MIN_BATTER_ADC_CHARGING     (MIN_BATTER_ADC+50)
-#define MAX_BATTER_ADC  			2544  	//4.1v
-#define BATT_LOW_POWER_LEVEL        20
     
     uint32_t  batt_level;
     uint16_t  min_batt_adc;

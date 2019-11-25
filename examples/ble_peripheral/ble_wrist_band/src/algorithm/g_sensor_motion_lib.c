@@ -40,7 +40,7 @@ typedef struct {
 
 #define FILTER_ORDER            4
 #define WINDOWS_SIZE            16 //10*16 160ms
-#define SLEEP_SECOND            ( 3 * 60 )
+#define SLEEP_SECOND            ( 4 * 60 )
 
 
 static const vector3_t           zero_vector = { 0 };
@@ -367,7 +367,7 @@ static void algo_lib_detection(void)
 
     if (max_scalar - min_scalar < 100)
     {
-        if (++flag_stay_in_quiet_counter >= SECONDS_OF_FREQ(SLEEP_SECOND + 60))  //chen
+        if (++flag_stay_in_quiet_counter >= SECONDS_OF_FREQ(SLEEP_SECOND))
         {
             ALGO_LOG("  flag_stay_in_quiet_counter = %d \r\n", flag_stay_in_quiet_counter);
             flag_stay_in_quiet = true;

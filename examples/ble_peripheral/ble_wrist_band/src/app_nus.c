@@ -23,7 +23,7 @@
 #include "app_flash_drv.h"
 #include "nrf_delay.h"
 
-#if 1
+#if 0
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
 #define NUS_LOG			NRF_LOG_INFO
@@ -359,7 +359,7 @@ void ble_send_proto_data_pack(uint8_t *data, uint16_t len, uint8_t flag)
 	msg_packet_t 	respHead; 
 	respHead.magic	= MAGIC_NUMBER; 
 	respHead.len	= len; 
-	respHead.val	= flag;       
+	respHead.flag.ack	= flag;       
     respHead.id		= 0; 	
                		
 	if( len > 0){			
@@ -372,31 +372,58 @@ void ble_send_proto_data_pack(uint8_t *data, uint16_t len, uint8_t flag)
 	memcpy( data_buff, (uint8_t*)&respHead, 8); 
 	memcpy( data_buff + 8, data, len); 
     
-    {
-        m_tx_in_used.p_data = data_buff;
-        m_tx_in_used.size = len+8;
-        m_has_data_to_send = true;
-        m_tx_offset = 0;
-    }
-        
+    
+    app_nus_tx_data_put(data_buff, len+8);
+
 }
 
 
 void ble_sos_key_send(void)
 {
-    uint8_t  databuff[10];
-        
-    databuff[0]=COMMAND_ID_DATA;
-    databuff[1]= 5;
-    databuff[2]=DATA_KEY_ALARM_CODE;
-    uint32_t temp32=0;
-    temp32 |= 1<<12; //SOS KEY BIT
-    memcpy(&databuff[3], (uint8_t *)&temp32, sizeof(uint32_t));
-    
-    
-    ble_send_proto_data_pack(databuff, 7, 0);   
-  
+    if (BLE_IsConnect() == false)
+    {        
+        NUS_LOG("[NUS]:ble disconnected");
+        return;
+    }
+    uint8_t  databuff[8];           
+    databuff[0] = COMMAND_ID_BLE_BASE;
+    databuff[1] = 3;
+    databuff[2] = BLE_WB_SOS_KEY_ALARM;
+    databuff[3] = 0;
+    databuff[4] = 1;    
+    ble_send_proto_data_pack(databuff, 5, 1);     
 }
+
+void ble_sport_data_send(void)
+{
+    if (BLE_IsConnect() == false)
+    {        
+        NUS_LOG("[NUS]:ble disconnected");
+        return;
+    }
+    
+    uint32_t  *sport_data;
+    uint16_t  len;
+    bool      ret;
+    
+    ret = find_read_sport_record(sport_data, &len, 0);
+    if(!ret)
+    {
+        NUS_LOG("[NUS]:no sport data ");
+        return;
+    }
+        
+    uint8_t  databuff[104];
+    databuff[0] = COMMAND_ID_BLE_BASE;
+    databuff[1] = 1+96;
+    databuff[2] = BLE_WB_READ_SPORT_DATA;
+    
+    memcpy(&databuff[3], (uint8_t *)sport_data, len);
+
+    ble_send_proto_data_pack(databuff, 99, 1);  //3+96
+               
+}
+
 
 
 

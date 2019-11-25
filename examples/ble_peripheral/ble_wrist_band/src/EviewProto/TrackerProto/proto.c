@@ -70,21 +70,21 @@ static const EpbProtoCmd_t scg_sCmds[] =
         .keys = NULL,
         .pKeySize = NULL,
     },
-
-    {
-        //0x05
-        .cmd = COMMAND_ID_DEBUG,
-        .handle = NULL,
-        .keys = scg_sProtoDebugKeys,
-        .pKeySize = &s_ucProtoDebugKeySize,
-    },
-    {
-        .cmd = COMMAND_ID_FACOTRY_TEST,
-        .handle = NULL,
-        .keys = scg_sProtoFactroyKeys,
-        .pKeySize = &s_sProtoFactroyKeysSize,
-    },
 */
+//    {
+//        //0x05
+//        .cmd = COMMAND_ID_DEBUG,
+//        .handle = NULL,
+//        .keys = scg_sProtoDebugKeys,
+//        .pKeySize = &s_ucProtoDebugKeySize,
+//    },
+//    {
+//        .cmd = COMMAND_ID_FACOTRY_TEST,
+//        .handle = NULL,
+//        .keys = scg_sProtoFactroyKeys,
+//        .pKeySize = &s_sProtoFactroyKeysSize,
+//    },
+
     {
         .cmd = COMMAND_ID_BLE_BASE,
         .handle = NULL,

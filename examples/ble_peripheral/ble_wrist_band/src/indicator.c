@@ -265,12 +265,12 @@ const IndEvtList_t  csg_sIndEvtList_LEDRed[] = {
         .cycle     = 0, //无限次
     },
     
-    {
-        .evtMark   = LED_RED_EVT_BLE_ADV,
-        .evts      = &csg_sBLEAdvEvt[0],
-        .sizeOfEvt = sizeof(csg_sBLEAdvEvt) / sizeof(csg_sBLEAdvEvt[0]),
-        .cycle     = 0, //无限次
-    },
+//    {
+//        .evtMark   = LED_RED_EVT_BLE_ADV,
+//        .evts      = &csg_sBLEAdvEvt[0],
+//        .sizeOfEvt = sizeof(csg_sBLEAdvEvt) / sizeof(csg_sBLEAdvEvt[0]),
+//        .cycle     = 0, //无限次
+//    },
 
 };
 
@@ -1041,18 +1041,18 @@ void Indicator_Evt(indicator_type_enum_t evt)
             break;
         }
         
-    case ALERT_TYPE_BLE_ADV:
-        {
-            sg_sIndStates[INDIC_LED_RED].curEvt |= LED_RED_EVT_BLE_ADV;
-            sg_sIndStates[INDIC_LED_RED].isNewEvt = true;
-            break;
-        }
-     case ALERT_TYPE_BLE_ADV_END:  
-        {
-            sg_sIndStates[INDIC_LED_RED].curEvt &= ~LED_RED_EVT_BLE_ADV;
-            sg_sIndStates[INDIC_LED_RED].isNewEvt = true;
-            break;
-        }
+//    case ALERT_TYPE_BLE_ADV:
+//        {
+//            sg_sIndStates[INDIC_LED_RED].curEvt |= LED_RED_EVT_BLE_ADV;
+//            sg_sIndStates[INDIC_LED_RED].isNewEvt = true;
+//            break;
+//        }
+//     case ALERT_TYPE_BLE_ADV_END:  
+//        {
+//            sg_sIndStates[INDIC_LED_RED].curEvt &= ~LED_RED_EVT_BLE_ADV;
+//            sg_sIndStates[INDIC_LED_RED].isNewEvt = true;
+//            break;
+//        }
         
 #endif
 
@@ -1275,17 +1275,12 @@ void Indicator_Init(void)
     nrf_gpio_cfg_output(RED_LED_PIN_NUMBER);
     nrf_gpio_cfg_output(MOTOR_PIN_NUMBER);
 
-    nrf_gpio_cfg_default(BLUE_LED_PIN_NUMBER);
-    nrf_gpio_cfg_default(GREEN_LED_PIN_NUMBER);
-    nrf_gpio_cfg_default(RED_LED_PIN_NUMBER);
-
     nrf_gpio_pin_set(BLUE_LED_PIN_NUMBER);
     nrf_gpio_pin_set(GREEN_LED_PIN_NUMBER);
     nrf_gpio_pin_set(RED_LED_PIN_NUMBER);
     nrf_gpio_pin_clear(MOTOR_PIN_NUMBER);
-
-
-
+    
+    
     // Create App Alert Timer
     uint32_t err_code = app_timer_create(&INDICATOR_TIMER,
                                          APP_TIMER_MODE_REPEATED,

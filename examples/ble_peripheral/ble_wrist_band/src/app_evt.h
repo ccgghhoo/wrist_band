@@ -8,7 +8,7 @@
 #define APP_EVT_PROTOCOL_DATA_HANDLE            0x0002
 #define APP_EVT_DFU_RESET                       0x0004
 #define APP_EVT_SOS_ALARM                       0x0008
-
+//#define APP_EVT_SPORT_SUCCESS                   0x0010
 
 
 void  clear_app_evt(uint32_t evt);

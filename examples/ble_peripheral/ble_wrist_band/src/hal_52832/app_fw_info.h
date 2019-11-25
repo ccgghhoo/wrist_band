@@ -65,7 +65,7 @@ typedef struct{
 #define APP_FW_MAJOR				0x00
 #define APP_FW_MINOR				0x00
 #define APP_FW_REV					0x00
-#define APP_FW_INNER				0x01
+#define APP_FW_INNER				0x02
 
 #define FW_REVISION			        (( APP_FW_MAJOR << 24 ) | ( APP_FW_MINOR << 16 ) | ( APP_FW_REV << 8 ) | APP_FW_INNER )
 

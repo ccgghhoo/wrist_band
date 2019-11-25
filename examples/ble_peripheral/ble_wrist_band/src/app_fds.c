@@ -12,7 +12,7 @@ static find_file_t  m_find_token={0};
 
 
 uint8_t  m_save_data_buff[ONE_HOUR_DATA_NUM]={0} ,m_save_data_cnt=0;
-
+uint8_t  m_read_data_buff[ONE_HOUR_DATA_NUM]={0};
 uint8_t  m_day_index =0;
 
 /*
@@ -242,14 +242,12 @@ void reset_find_token(void)
     m_find_token.ftoken.page =0;
     m_find_token.ftoken.p_addr = 0;
     m_find_token.read_day_index = 0;
+    m_find_token.delay_s = 0;
 }
 
 
 void  sport_level_data_read(uint32_t *readDataBuff, uint16_t  *ReadLength, uint8_t whichDay)
-{
-    
-    //if(m_find_token.b_find_end == 1 && m_find_token.read_day_index == whichDay) return; //for test
-    
+{       
     if(m_find_token.b_find_begin == 0 || m_find_token.read_day_index != whichDay)
     {
         reset_find_token();
@@ -270,10 +268,72 @@ void  sport_level_data_read(uint32_t *readDataBuff, uint16_t  *ReadLength, uint8
         reset_find_token();
         *ReadLength = 0;
         m_find_token.b_find_end = 1;
-    }
-                                   
-                                       
+    }                                                                         
 }
+
+
+bool  find_read_sport_record(uint32_t *readDataBuff, uint16_t  *ReadLength, uint8_t whichDay)
+{ 
+    
+    if(m_find_token.b_find_end)
+    {
+        if(++m_find_token.delay_s>3620) //
+        {
+            reset_find_token();
+        }
+        else
+        {
+            return false;
+        } 
+    }
+    
+    if(m_find_token.b_find_begin == 0)
+    {
+        reset_find_token();
+        m_find_token.b_find_begin = 1;
+        m_find_token.retry_cnt = 0;        
+    }
+    
+    //m_find_token.file_id = day_id_to_file_id(m_find_token.read_day_index);    
+    //if(fds_record_find_in_file(m_find_token.file_id,&m_find_token.fdesc,&m_find_token.ftoken) == FDS_SUCCESS)
+    if(fds_record_find_by_key(APP_REC_KEY_ID_SPORT_LVL,&m_find_token.fdesc,&m_find_token.ftoken) == FDS_SUCCESS)
+    {
+        fds_header_t const * p_header = (fds_header_t*)m_find_token.ftoken.p_addr;
+        *ReadLength = sizeof(uint32_t)*p_header->length_words;
+        readDataBuff = (uint32_t *)m_read_data_buff;
+        memcpy(readDataBuff, m_find_token.ftoken.p_addr+3, sizeof(uint32_t)*p_header->length_words);          
+        //fds_record_delete(&m_find_token.fdesc);
+        return true;
+    }
+    else
+    {
+        reset_find_token();
+        *ReadLength = 0;       
+//        m_find_token.read_day_index++;
+//        if(m_find_token.read_day_index>=MAX_FLASH_SAVE_DAY)
+        {
+            m_find_token.retry_cnt ++;
+//            m_find_token.read_day_index = 0;
+            if(m_find_token.retry_cnt>=2)
+            {
+                m_find_token.b_find_end = 1;
+            }
+            
+        }
+        return false;
+    }   
+   
+}
+
+bool del_current_sport_record(void)
+{    
+    uint32_t ret = fds_record_delete(&m_find_token.fdesc);
+    return ret==0;
+}
+
+
+
+
 
 void read_file_data_test(void)
 {

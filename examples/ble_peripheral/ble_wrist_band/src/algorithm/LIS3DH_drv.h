@@ -451,8 +451,8 @@ LIS3DH_NO_CLICK                        =               0x00
 
 //FIFO REGISTERS
 #define LIS3DH_FIFO_CTRL_REG                    0x2E
-#define LIS3DH_FIFO_SRC_REG                 0x2F
-
+#define LIS3DH_FIFO_SRC_REG                     0x2F
+#define LIS3DH_REFERENCE                        0x26
 
 //Sensitivity
 #define LIS3DH_Acc_Sensitivity_2g     1  /*!< accelerometer sensitivity with 2 g full scale [mg/LSB] */
@@ -540,6 +540,8 @@ uint8_t  get_spi_xfer_done_flag(void);
 void LIS3DH_SpiInit(void);
 void LIS3DH_spi_uninit(void);
 void LIS3DH_INT_PIN_init(void);
+void lis3dh_sleep_mode(void);
+void lis3dh_work_mode(void);
 
 #endif /* __LIS3DH_H */
 

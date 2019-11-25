@@ -84,6 +84,9 @@ static void power_management_init(void)
  */
 static void idle_state_handle(void)
 {
+    __WFE();
+    return;
+    
     if (NRF_LOG_PROCESS() == false)
     {
         nrf_pwr_mgmt_run();
@@ -102,7 +105,8 @@ static void main_loop(void)
   
     app_evt_poll();
 
-
+    md_process();
+    
     app_wdt_reload(); 
     
     //nrf_delay_ms(4100);//test bootloader WDT=4000ms
@@ -130,13 +134,7 @@ int main(void)
     
     battery_level_cal();
     batt_voltage_get(); 
-    
-//    float resu  = _sqrt(999.0);
-//    float resu1 = Q_rsqrt(0.0009);
-//    
-//    //NRF_LOG_INFO("squart =%x ", (int)resu);
-//    NRF_LOG_INFO("squart =%x, %x", resu, resu1);
-    
+        
     for (;;)
     {
         NRF_LOG_FLUSH();

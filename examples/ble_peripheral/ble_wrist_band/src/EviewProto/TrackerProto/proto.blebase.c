@@ -15,6 +15,7 @@ static int ProtoBLEwb_sosAlarm(struct objEpbProto *obj, uint8_t key, const uint8
 static int ProtoBLEwb_infoData(struct objEpbProto *obj, uint8_t key, const uint8_t *p_data, uint16_t len);
 static int ProtoBLEwb_sportData(struct objEpbProto *obj, uint8_t key, const uint8_t *p_data, uint16_t len);
 static int ProtoBLEwb_updateTime(struct objEpbProto *obj, uint8_t key, const uint8_t *p_data, uint16_t len);
+static int ProtoBLEwb_FwInfo(struct objEpbProto *obj, uint8_t key, const uint8_t *p_data, uint16_t len);
 
 //static int ProtoBLEBase_BaseType(struct objEpbProto *obj, uint8_t key, const uint8_t *p_data, uint16_t len);
 //static int ProtoBLEBase_MusicPlay(struct objEpbProto *obj, uint8_t key, const uint8_t *p_data, uint16_t len);
@@ -58,6 +59,16 @@ const EpbProtoKey_t scg_sProtoBLEBaseKeys[] =
         .key = BLE_WB_READ_SPORT_DATA,
         .handle = ProtoBLEwb_sportData,
     },
+    {
+        .key = BLE_WB_UPDATE_UTC_SECONDS,
+        .handle = ProtoBLEwb_updateTime,
+    }, 
+    {
+        .key = BLE_WB_READ_FW_INFO,
+        .handle = ProtoBLEwb_FwInfo,
+    },
+    
+    
     
 
 };
@@ -205,6 +216,10 @@ static int ProtoBLEBase_DevType(struct objEpbProto *obj, uint8_t key, const uint
 }
 #endif
 
+
+
+
+
 static int ProtoBLEwb_sosAlarm(struct objEpbProto *obj, uint8_t key, const uint8_t *p_data, uint16_t len)
 {
     if(*p_data == 1 && *(p_data+1) == 1 )
@@ -224,25 +239,24 @@ static int ProtoBLEwb_infoData(struct objEpbProto *obj, uint8_t key, const uint8
     temp[1] = 10;
     temp[2] = BLE_WB_READ_INFO_DATA;
     
-//    uint32_t temp32 = RunTime_GetValue();
-//    
-//    memcpy(temp + 3, (uint8_t *)&temp32, 4);
-//    chunk_len += 7;
+    uint32_t temp32 = UTC_GetValue();
     
-    chunk_len += 3;
- 
-    uint32_t temp32 = md_app_get_step_counter();  //get step cnt //chen
+    memcpy(temp + 3, (uint8_t *)&temp32, 4);
+    chunk_len += 7;
+    
+    temp32 = md_app_get_step_counter();  //get step cnt //chen
     memcpy(&temp[chunk_len], (uint8_t *)&temp32, 4);    
     chunk_len += 4;
+    
     temp[chunk_len++] = batt_level_get();
-          
-    chunk_len+=3;  // 3 bytes for reserve
-        
+                 
     Proto_Resp(obj, FLAG_NORMAL_RESP, temp, chunk_len);
+    
     return EPB_SUCCESS;
 }
 static int ProtoBLEwb_sportData(struct objEpbProto *obj, uint8_t key, const uint8_t *p_data, uint16_t len)
 {
+ /*   
     uint8_t temp[128] = {0};
     uint16_t chunk_len = 0;
     uint16_t read_len =0;
@@ -257,15 +271,47 @@ static int ProtoBLEwb_sportData(struct objEpbProto *obj, uint8_t key, const uint
     temp[1] = chunk_len-2;   //data len
     
     Proto_Resp(obj, FLAG_NORMAL_RESP, temp, chunk_len);
+*/  
+    if(*p_data == 0)
+    {       
+        del_current_sport_record(); 
+        return EPB_SUCCESS;
+    }
+    else
+    {
+        return -1;
+    }
     
-    return EPB_SUCCESS;
+
 }
 
 static int ProtoBLEwb_updateTime(struct objEpbProto *obj, uint8_t key, const uint8_t *p_data, uint16_t len)
 {
+       
+    uint32_t utc = p_data[0] + (p_data[1]<<8) + (p_data[2]<<16) + (p_data[3]<<24);
+    
+    UTC_SetValue(utc) ;    
+    
+    //Proto_RespPositive(objEpbProto_t *obj, uint8_t cmd, uint8_t key)
+    //Proto_RespNegative(obj, EPB_SUCCESS);   
     
     return EPB_SUCCESS;
 }
+
+static int ProtoBLEwb_FwInfo(struct objEpbProto *obj, uint8_t key, const uint8_t *p_data, uint16_t len)
+{
+    uint8_t temp[128] = {0};
+     
+    temp[0] = 41;     //len=key_value_len + key_len
+	temp[1] = 0x08;   //key
+    
+    memcpy(&temp[2], (uint8_t *)&appl_info.fw_version, 40/*sizeof(app_info_t)*/);
+        
+    Proto_Resp(obj, FLAG_NORMAL_RESP, temp, 41+1);
+    
+    return EPB_SUCCESS;
+}
+
 
 
 

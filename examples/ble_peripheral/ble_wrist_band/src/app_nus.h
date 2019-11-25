@@ -23,6 +23,7 @@ bool BLE_IsConnect();
 
 uint32_t app_nus_send_data(uint8_t * data, uint16_t * len);
 void ble_sos_key_send(void);
+void ble_sport_data_send(void);
 
 #endif 
 

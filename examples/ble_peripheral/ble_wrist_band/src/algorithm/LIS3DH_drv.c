@@ -41,6 +41,10 @@
 
 #define SPI_INSTANCE  0 /**< SPI instance index. */
 #define LIS3DH_CHIP_ID  0X33
+#define _25_hz    0x37
+#define _50_hz    0x47
+#define _100_hz  0x57 
+
 static const nrf_drv_spi_t spi = NRF_DRV_SPI_INSTANCE(SPI_INSTANCE);  /**< SPI instance. */
 static volatile bool spi_xfer_done;  /**< Flag used to indicate that SPI instance completed the transfer. */
 
@@ -48,6 +52,38 @@ static uint8_t       m_tx_buf[8];      /**< TX buffer. */
 static uint8_t       m_rx_buf[8];      /**< RX buffer. */
 //static uint8_t       m_length ;        /**< Transfer length. */
 AxesRaw_t            m_lis3dh_acc_data;
+
+
+#define   MY_ACC_MODE     0
+static const uint8_t lis3dh_sleep_cfg[][2] = {
+    LIS3DH_CTRL_REG1, 0x27,     // ODR=10Hz, LP enable, X/Y/Z enable
+    LIS3DH_CTRL_REG2, 0x09,     // Normal Mode
+    LIS3DH_CTRL_REG3, 0x40,     // IA1 interrupt on INT1
+    LIS3DH_CTRL_REG4, 0x10,     // FS: +/- 4g, high resolution disable
+    LIS3DH_CTRL_REG5, 0x08,     // int1 latch
+    LIS3DH_CTRL_REG6, 0x02,     // change interrupt porality to lOW
+
+    LIS3DH_FIFO_CTRL_REG, 0x00, // Bypass mode, clear fifo buffer
+
+    LIS3DH_INT1_THS, 3,        // 1 lsb = 32mg, FS = +/-4G
+    LIS3DH_INT1_DURATION, 0x01, // 1/ODR
+    //LIS3DH_INT1_CFG, 0x2A,      // 3-axis enable
+};
+static const uint8_t lis3dh_work_cfg[][2] = {
+    LIS3DH_INT1_CFG, 0x00,      // Disable INT1 3-axis
+
+    LIS3DH_CTRL_REG1, 0x00,     // Disable
+    LIS3DH_CTRL_REG2, 0x00,
+    LIS3DH_CTRL_REG3, 0x00,     // Disable Interrupt
+    LIS3DH_CTRL_REG4, 0x18,     // FS: +/- 4g, high resolutiohn enable
+    LIS3DH_CTRL_REG5, 0x40,     // FIFO enable
+
+    LIS3DH_FIFO_CTRL_REG, 0x00, // byPass Mode, clear fifo bytes
+    LIS3DH_FIFO_CTRL_REG, 0x80, //Stream Mode
+    LIS3DH_REFERENCE, 0x00,
+
+    LIS3DH_CTRL_REG1, _100_hz,     //_100_hz // ODR=50Hz, LP disable, x/y/z enable
+};
 
 //////////////////////////////////////////////////////////////////////////////////
 
@@ -58,21 +94,80 @@ void LIS3DH_spi_uninit(void)
     nrfx_spi_uninit((nrfx_spi_t const *)&spi);
 }
 
+void lis3dh_work_mode(void)
+{
+#if MY_ACC_MODE	
+    for (uint32_t i = 0; i < sizeof(lis3dh_work_cfg) / 2; i++)
+    {
+        LIS3DH_WriteReg(lis3dh_work_cfg[i][0], lis3dh_work_cfg[i][1]);
+    }
+#else
+  
+    LIS3DH_WriteReg(0x3e,0x00); //act threshold 2*32mg=64mg   
+    LIS3DH_WriteReg(0x3f,0x00); //act duration
+    LIS3DH_WriteReg(LIS3DH_CTRL_REG3,0x00);
+    LIS3DH_WriteReg(LIS3DH_CTRL_REG6,0x00); 
+    //nrf_drv_gpiote_in_event_disable(LIS3DH_INT2_PIN);
+#endif    
+ 
+}
+
+void lis3dh_sleep_mode(void)
+{
+#if MY_ACC_MODE	
+    for (uint32_t i = 0; i < sizeof(lis3dh_sleep_cfg) / 2; i++)
+    {
+        LIS3DH_WriteReg(lis3dh_sleep_cfg[i][0], lis3dh_sleep_cfg[i][1]);
+    }
+#else
+    uint8_t int2src;
+    LIS3DH_ReadReg(0X35, &int2src); //clear INT2
+    
+    LIS3DH_WriteReg(0x3e,0x8); //act threshold 8*16mg=128mg   
+    LIS3DH_WriteReg(0x3f,0x02); //act duration
+    LIS3DH_WriteReg(LIS3DH_CTRL_REG3,0x00);
+    LIS3DH_WriteReg(LIS3DH_CTRL_REG6,0x08);  
+    //nrf_drv_gpiote_in_event_enable(LIS3DH_INT2_PIN, true);
+#endif   
+}
+
+
+
 static void lis3dh_int_1_evt_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
 {
+    
+    //nrf_delay_ms(50);
     if (nrf_gpio_pin_read(pin) == 0)
-    {
+    {       
 		md_set_wakeup(); 
     }
 }
 
 void LIS3DH_INT_PIN_init(void)
 {
+
+
+#if MY_ACC_MODE
     nrf_drv_gpiote_in_config_t int_config = {
-        .sense 			= NRF_GPIOTE_POLARITY_TOGGLE,
-        .pull			= NRF_GPIO_PIN_NOPULL,
+        .sense 			= NRF_GPIOTE_POLARITY_TOGGLE,//NRF_GPIOTE_POLARITY_HITOLO,
+        .pull			= NRF_GPIO_PIN_NOPULL,//NRF_GPIO_PIN_PULLUP,
         .is_watcher 	= false,
         .hi_accuracy	= false,
+    };
+
+    APP_ERROR_CHECK(nrf_drv_gpiote_in_init(LIS3DH_INT1_PIN,
+                                           &int_config,
+                                           lis3dh_int_1_evt_handler)
+                   );
+    nrf_drv_gpiote_in_event_enable(LIS3DH_INT1_PIN, true);
+    
+#else
+    
+    nrf_drv_gpiote_in_config_t int_config = {
+        .sense 			= NRF_GPIOTE_POLARITY_TOGGLE,
+        .pull			= NRF_GPIO_PIN_PULLUP,
+        .is_watcher 	= false,
+        .hi_accuracy	= false, 
     };
 
     APP_ERROR_CHECK(nrf_drv_gpiote_in_init(LIS3DH_INT2_PIN,
@@ -81,6 +176,8 @@ void LIS3DH_INT_PIN_init(void)
                    );
 
     nrf_drv_gpiote_in_event_enable(LIS3DH_INT2_PIN, true);
+#endif    
+    
     
   }
 /*******************************************************************************
@@ -116,6 +213,14 @@ void LIS3DH_SpiInit(void) {
     }
     
     
+#if MY_ACC_MODE    
+    
+    lis3dh_work_mode();
+    
+    
+    return;
+#else    
+    
 //    if(LIS3DH_SetSelfTest(LIS3DH_SELF_TEST_1)==MEMS_SUCCESS) 
 //    {
 //        NRF_LOG_INFO("self test OK!!!");
@@ -125,7 +230,6 @@ void LIS3DH_SpiInit(void) {
 //        NRF_LOG_INFO("self test faillll!!!");
 //    }
     
-    nrf_delay_ms(2);
     
     LIS3DH_WriteReg(LIS3DH_INT1_CFG, 0x00); 
       
@@ -158,7 +262,7 @@ void LIS3DH_SpiInit(void) {
 //        {
 //            LIS3DH_GetAccAxesRaw(&m_lis3dh_acc_data);    
 //        }    
-
+#endif
 }
 
 

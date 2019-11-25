@@ -113,5 +113,8 @@ int DateTime_Init();
  * @return bool true 需要请求，false不需要请求
  */
 bool DateTime_IsRequestUpDate();
+
+void  UTC_SetValue(uint32_t utc) ;
+bool UTC_IsValid(void);
 #endif
 

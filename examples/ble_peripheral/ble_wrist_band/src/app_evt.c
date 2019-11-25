@@ -30,19 +30,28 @@ void app_evt_poll(void)
   {
       uint32_t m_user_time_senconds= UTC_GetValue();//RunTime_GetValue();           
       clear_app_evt(APP_EVT_1S);
-      if(m_user_time_senconds%60==0)
+            
+      if(check_app_evt(APP_EVT_SOS_ALARM))
       {
-          battery_level_cal();
-          batt_voltage_get();      
+          ble_sos_key_send();          //event will be cleared only when the central respond to band
       }
       
-#if 0 //def DEGREE
+      if(RunTime_GetValue()>30 && (m_user_time_senconds&0x01))//
+      {
+          ble_sport_data_send();          
+      }
       
-       md_module_period_one_second();
+      
+#ifdef DEGREE
+      //NRF_LOG_INFO("DGEGREE");
+      md_module_period_one_second();
      
       if(m_user_time_senconds%300==0)//300
       {
-          md_module_period_save();//for test
+          //if(UTC_IsValid())  //时间有效才存储
+          {
+                md_module_period_save();//
+          }
       }
       
 #endif      
@@ -52,20 +61,29 @@ void app_evt_poll(void)
       if ((ret & RTC_CHANGE_IN_DAY) > 0)       //new day
       //if ((ret & RTC_CHANGE_IN_HOUR) > 0) 
       //if ((ret & RTC_CHANGE_IN_MINUTE) > 0)
-      {
+      {          
            app_fds_new_day_handle();        
       }
       
+            
       batt_charging_check();
-      batt_status_get();      
-           
+      batt_status_get();            
+      if(m_user_time_senconds%60==0)
+      {
+          battery_level_cal();
+          batt_voltage_get();      
+      }             
       if(batt_state_changed())      
       {       
           batt_clear_adv_update_flag();
           update_adv_data();
       }
       
-      
+//         AxesRaw_t raw_data;     // for test
+//         LIS3DH_GetAccAxesRaw(&raw_data);      
+//         NRF_LOG_INFO("x=%d y=%d z=%d", raw_data.X/16, raw_data.Y/16, raw_data.Z/16);
+         
+         
       //md_motion_or_static_alert_judge();
       
       if(check_app_evt(APP_EVT_DFU_RESET))

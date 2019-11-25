@@ -31,7 +31,7 @@
 #define DEVICE_NAME						"eview_wrist_band"
 #endif
 
-#define DEGREE 1
+#define  DEGREE  1
 #define  TILT_VERTICAL_ACCEL_S        TILT_VERTICAL_ACCEL_POINT_X
   
 #ifndef DEV_VERSION

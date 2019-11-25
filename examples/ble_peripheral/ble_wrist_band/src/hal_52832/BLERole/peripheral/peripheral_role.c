@@ -32,7 +32,7 @@
 #include  "app_init.h"
 
 
-#define DEV_NAME                        "eview_band2"                       /**< Name of device. Will be included in the advertising data. */
+#define DEV_NAME                        "WB01"                       /**< Name of device. Will be included in the advertising data. */
 #define MANUFACTURER_NAME               "eview"                   /**< Manufacturer. Will be passed to Device Information Service. */
 #define APP_ADV_INTERVAL                300                                     /**< The advertising interval (in units of 0.625 ms. This value corresponds to 187.5 ms). */
 #define APP_ADV_INERVAL_CONNECTED       1000
@@ -380,7 +380,7 @@ static void on_adv_evt(ble_adv_evt_t ble_adv_evt)
             //err_code = bsp_indication_set(BSP_INDICATE_ADVERTISING);
             //APP_ERROR_CHECK(err_code);
             //app_led_indicate_set(LED_FUN_BLE_ADVERTISING);
-            Indicator_Evt(ALERT_TYPE_BLE_ADV);
+            //Indicator_Evt(ALERT_TYPE_BLE_ADV);
             break;
 
         case BLE_ADV_EVT_IDLE:
@@ -388,7 +388,7 @@ static void on_adv_evt(ble_adv_evt_t ble_adv_evt)
           
             //advertising_start();
             //NRF_LOG_INFO("start advertising");
-            Indicator_Evt(ALERT_TYPE_BLE_ADV_END);
+            //Indicator_Evt(ALERT_TYPE_BLE_ADV_END);
             break;
 
         default:
@@ -419,7 +419,7 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             ///bsp_indication_set(BSP_INDICATE_ADVERTISING);
             //app_led_indicate_set(LED_FUN_BLE_ADVERTISING);
             Indicator_Evt(ALERT_TYPE_BLE_DISCONNECTED);
-            Indicator_Evt(ALERT_TYPE_BLE_ADV);
+            //Indicator_Evt(ALERT_TYPE_BLE_ADV);
             break;
 
         case BLE_GAP_EVT_CONNECTED:
@@ -427,7 +427,7 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             
             //app_led_indicate_set(LED_FUN_BLE_CONNECTED); 
             Indicator_Evt(ALERT_TYPE_BLE_CONNECTED);
-            Indicator_Evt(ALERT_TYPE_BLE_ADV_END);
+            //Indicator_Evt(ALERT_TYPE_BLE_ADV_END);
             
             m_conn_handle = p_ble_evt->evt.gap_evt.conn_handle;
             err_code = nrf_ble_qwr_conn_handle_assign(&m_qwr, m_conn_handle);
@@ -544,9 +544,9 @@ static void bsp_event_handler(bsp_event_t event)
 
     switch (event)
     {
-        case BSP_EVENT_KEY_0:
-            //sleep_mode_enter();
-            
+        case BSP_EVENT_KEY_0:           
+            //update_adv_data();
+            clear_app_evt(APP_EVT_SOS_ALARM);
             NRF_LOG_INFO("button pressed one time!!");
             
             break; // BSP_EVENT_SLEEP
@@ -559,7 +559,7 @@ static void bsp_event_handler(bsp_event_t event)
 //            //uint32_t reslt=app_nus_send_data(string, &len);
 //            ble_send_proto_data_pack(string, len, 0); 
             set_app_evt(APP_EVT_SOS_ALARM);    
-            ble_sos_key_send();
+            //ble_sos_key_send();
             break; // 
 
         default:

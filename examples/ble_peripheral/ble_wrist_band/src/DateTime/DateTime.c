@@ -38,11 +38,11 @@ volatile uint32_t 				second_ticks;
 
 static DataTimeInfo_t sg_sDataTimeInfo = {
     .curTime = {
-        .year = 19,
-        .month = 10,
-        .day = 22,
-        .hour = 8,
-        .minute = 55,
+        .year = 0,
+        .month = 1,
+        .day = 1,
+        .hour = 0,
+        .minute = 0,
         .second = 0,
     },
     .lstRequest = MAX_UPDATA_TCP_LIMIT,
@@ -109,6 +109,12 @@ uint32_t UTC_GetValue()
     return sg_sDataTimeInfo.utc;
 }
 
+void  UTC_SetValue(uint32_t utc)  //chen
+{    
+    sg_sDataTimeInfo.utc = utc;
+    sg_sDataTimeInfo.curTime = DateTime_UTC2DateTime(utc);
+}
+
 
 /**
  * UTC 时间比较
@@ -149,6 +155,11 @@ __INLINE bool DateTime_IsNewTick(void)
 __INLINE bool DateTime_IsValid(void)
 {
     return sg_sDataTimeInfo.IsTimeValid;
+}
+
+__INLINE bool UTC_IsValid(void)
+{    
+   return (sg_sDataTimeInfo.utc>1546272000); //2019/01/01/00000
 }
 
 /**
@@ -318,11 +329,11 @@ static uint32_t DateTime_DateTime2UTC(datetime_t time, int32_t zone_offset)
  */
 void DateTime_IncreaseHandler(void)
 {
-    if (DateTime_IsValid() == false)  //chen
-    {
-        second_ticks = 0;
-        return;
-    }
+//    if (DateTime_IsValid() == false)  //chen
+//    {
+//        second_ticks = 0;
+//        return;
+//    }
 
     if (second_ticks > 0)
     {
@@ -740,7 +751,6 @@ void  init_utc_from_default_date(void)
         //datetime_t *now_time = DateTime_UTC2DateTime(utc); //seconds to date
         
         sg_sDataTimeInfo.IsTimeValid = true;
-        second_ticks = 0; // clear time tick
         sg_sDataTimeInfo.utc = utc;
         
         //NRF_LOG_INFO("UTC default seconds :%d", utc);        

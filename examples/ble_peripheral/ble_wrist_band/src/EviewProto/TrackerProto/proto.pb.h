@@ -206,9 +206,12 @@ typedef enum { //epb_key_of_sys_control_t
     BLE_BASE_MUSIC_CTRL,
     BLE_BASE_DEV_TYPE, //设备类型
     
+    //手环使用key
     BLE_WB_SOS_KEY_ALARM = 0X30, //chen
     BLE_WB_READ_INFO_DATA,
     BLE_WB_READ_SPORT_DATA,
+    BLE_WB_UPDATE_UTC_SECONDS,
+    BLE_WB_READ_FW_INFO,
     
 }epb_key_of_ble_base_t;
 typedef struct {

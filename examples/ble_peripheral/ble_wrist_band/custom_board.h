@@ -74,8 +74,8 @@ extern "C" {
 
 //=================================================    
 #define  BLUE_LED_PIN_NUMBER    (-1)  
-#define  GREEN_LED_PIN_NUMBER   (-1)
-#define  RED_LED_PIN_NUMBER     17 
+#define  GREEN_LED_PIN_NUMBER   (-1) 
+#define  RED_LED_PIN_NUMBER     29
 #define  MOTOR_PIN_NUMBER       24  
 
   

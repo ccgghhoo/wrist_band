@@ -77,7 +77,7 @@ void md_app_set_step_counter(uint32_t step_cnt)
         SmartWear_SportHealth_Sport_Step_Reset();
     }
     md_step_counter_curr = step_cnt; 
-    //MD_LOG("[MD]: md_app_set_step_counter: %x", md_step_counter_curr);    
+    MD_LOG("[MD]: md_app_set_step_counter: %x", md_step_counter_curr);    
 }
 
 uint32_t md_app_get_step_counter(void)
@@ -222,10 +222,8 @@ bool md_get_wakeup(void)
 
 static void md_start_work(void)
 {
-    LIS3DH_WriteReg(0x3e,0x00); //act threshold 2*32mg=64mg   
-    LIS3DH_WriteReg(0x3f,0x00); //act duration
-    LIS3DH_WriteReg(LIS3DH_CTRL_REG3,0x00);
-    LIS3DH_WriteReg(LIS3DH_CTRL_REG6,0x00);    
+ 
+    lis3dh_work_mode();
     
     md_timer_start();
     md.timeout = true;
@@ -239,17 +237,14 @@ static void md_start_work(void)
     md.motion_detct_cnt = 0;
     md.static_detct_cnt = 0;
     
-    MD_LOG("[MD]: work mode\r\n");
+    MD_LOG("[MD]: work mode");
 }
 
 
 static void md_start_sleep(void)
 {
-//    lis3dh_stay_in_sleep_mode();
-    LIS3DH_WriteReg(0x3e,0x8); //act threshold 8*16mg=128mg   
-    LIS3DH_WriteReg(0x3f,0x02); //act duration
-    LIS3DH_WriteReg(LIS3DH_CTRL_REG3,0x04);
-    LIS3DH_WriteReg(LIS3DH_CTRL_REG6,0x0A);
+
+    lis3dh_sleep_mode();
     
     md_timer_stop();
     md.workmode = false;
@@ -262,63 +257,12 @@ static void md_start_sleep(void)
     md.motion_detct_cnt=0;
     md.motion_alert_flag = 0;
     md.static_detct_cnt = 0;
-    MD_LOG("[MD]: sleep mode\r\n");
+    MD_LOG("[MD]: sleep mode");
 }
 
 
 void md_motion_or_static_alert_judge(void)
 {
- /*   
-    if(md.static_flag==1)
-    {
-        if(md.static_alert_flag && md.motion_flag==3)
-        {
-            md.motion_flag =0;
-//            md_motion_int_en(EINT1_MOTION_ALERT_PIN);
-//            MD_LOG("[MD]: static alert generated \r\n");
-        }
-        
-        if(md.motion_flag ==0)
-        {
-            if((md.motion_detct_cnt++)>dev_config_get_alert_motion_setup_time())
-            {
-                md.motion_flag =1;
-                md.motion_detct_cnt=0;
-            }
-        }        
-        
-    }
-    else if(md.motion_flag==2 )
-    {
-        if((md.motion_detct_cnt++)>dev_config_get_alert_motion_action_time())
-        {
-            md.motion_flag =0;
-            md.motion_detct_cnt=0;
-            md.motion_alert_flag = 3;  //motion confirmed
-//            md_motion_int_en(EINT1_MOTION_ALERT_PIN);
-//            MD_LOG("[MD]: motion alert generated \r\n");
-        }
-        else
-        {
-            if(md.static_detct_cnt>=5*30)//static 30s
-            {
-                md.motion_flag = 0;
-                md.motion_detct_cnt=0;
-                //md.motion_alert_flag = 0;
-            }
-        }
-        
-    }
-*/ 
-//        static uint8_t last_tmp;
-//        uint8_t tmp = m_state_motion.state;//sg_sNomotionInfo.state;
-//        
-//        if(last_tmp!=tmp)
-//        {
-//            MD_LOG("[MD]: motion state :%d", tmp);
-//            last_tmp=tmp;
-//        }
-
         uint8_t int_en_satus=0;
       
         if(md.fall_down_flag && pin_int_en.int_en.int_en_bits.falldown_int_en)
@@ -453,7 +397,7 @@ static void md_algorithm_run(void)
     for(uint32_t i=0; i<bytes_in_fifo; i++)
     {
       LIS3DH_GetAccAxesRaw(&raw_data[i]); 
-//      NRF_LOG_INFO("x=%d y=%d z=%d", raw_data[i].X/16, raw_data[i].Y/16, raw_data[i].Z/16);      
+      //NRF_LOG_INFO("x=%d y=%d z=%d", raw_data[i].X/16, raw_data[i].Y/16, raw_data[i].Z/16);      
     }
     vector3_t r3;
     
@@ -624,9 +568,10 @@ void md_init(void)
 {
     memset(&md, 0, sizeof(md));
     
-    
-    LIS3DH_INT_PIN_init();
+       
     LIS3DH_SpiInit();
+    
+    LIS3DH_INT_PIN_init();    
 //    dev_conf_init_t  dev_conf_obj;
 //    dev_conf_obj.cb = dev_config_value_change;    
 //    dev_conf_init(&dev_conf_obj);
@@ -653,7 +598,7 @@ void md_init(void)
     {
         APP_ERROR_CHECK(err_code);
     }
-
+    
     // force work mode while power on.
     md.wakeup = true;
     md.workmode = false;
