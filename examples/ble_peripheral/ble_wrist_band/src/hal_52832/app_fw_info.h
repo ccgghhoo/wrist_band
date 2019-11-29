@@ -37,8 +37,8 @@
 #define APP_FW_SD_FW_ID	  0x00af 
 #endif
 
-#define SD_VARIANT_ID_112 112
-#define SD_VERSION_112 (SD_MAJOR_VERSION_112 * 1000000 + SD_MINOR_VERSION_112 * 1000 + SD_BUGFIX_VERSION_112)
+#define SD_VARIANT_ID_112       112
+#define SD_VERSION_112          (SD_MAJOR_VERSION_112 * 1000000 + SD_MINOR_VERSION_112 * 1000 + SD_BUGFIX_VERSION_112)
 #define APP_FW_SD_VERSION		SD_VERSION_112
  
 
@@ -61,17 +61,19 @@ typedef struct{
 }app_info_t; 
 
 
-// firmware Version ( Major.Minor.Revsion.Inner ) 
-#define APP_FW_MAJOR				0x00
-#define APP_FW_MINOR				0x00
-#define APP_FW_REV					0x00
-#define APP_FW_INNER				0x02
+//// firmware Version ( Major.Minor.Revsion.Inner ) 
+//#define APP_FW_MAJOR				0x00
+//#define APP_FW_MINOR				0x00
+//#define APP_FW_REV			    0x00
+//#define APP_FW_INNER				0x02
+//
+//#define FW_REVISION			        (( APP_FW_MAJOR << 24 ) | ( APP_FW_MINOR << 16 ) | ( APP_FW_REV << 8 ) | APP_FW_INNER )
+#define FW_REVISION	                PROPERTY_FIRMWARE_VER
 
-#define FW_REVISION			        (( APP_FW_MAJOR << 24 ) | ( APP_FW_MINOR << 16 ) | ( APP_FW_REV << 8 ) | APP_FW_INNER )
 
 #define FW_REVISION_STRING			"v0.1"
 
-//#define APP_FW_HW_VER			    (0x90)
+#define APP_FW_HW_VER			    (0x90)
 
 
 extern const app_info_t appl_info;

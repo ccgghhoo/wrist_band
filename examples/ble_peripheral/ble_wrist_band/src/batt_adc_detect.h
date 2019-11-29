@@ -34,7 +34,7 @@ bool batt_state_changed(void);
 void batt_clear_adv_update_flag(void);
 bool batt_low_alert_get(void);
 bool batt_charging_check(void);
-
+bool batt_charging_flag_get(void);
 batt_status_t batt_status_get(void);
 #endif /* */
 

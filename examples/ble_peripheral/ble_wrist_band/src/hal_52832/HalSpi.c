@@ -46,14 +46,15 @@ void HalSpi0_Init(void)
 {
     if (m_is_spi_initialized) return;
 
-    NRF_SPI0->PSEL.MISO = SPI0_MISO_PIN_NUMBER;
-    NRF_SPI0->PSEL.MOSI = SPI0_MOSI_PIN_NUMBER;
-    NRF_SPI0->PSEL.SCK	= SPI0_CLK_PIN_NUMBER;
+    NRF_SPI0->PSEL.MISO = SPIM0_SS_PIN;
+    NRF_SPI0->PSEL.MOSI = SPIM0_MOSI_PIN;
+    NRF_SPI0->PSEL.SCK	= SPIM0_SCK_PIN;
 
     NRF_SPI0->FREQUENCY	= SPI_FREQUENCY_FREQUENCY_M4;
     NRF_SPI0->CONFIG	= 0; //MSB first, CPHA = 0/ CPOL = 0
-
-    NRF_SPI0->ENABLE	= SPI_ENABLE_ENABLE_Disabled << SPI_ENABLE_ENABLE_Pos;
+    
+    HalSpi0_Enable();
+    //NRF_SPI0->ENABLE	= SPI_ENABLE_ENABLE_Disabled << SPI_ENABLE_ENABLE_Pos;
 
 #if HAS_GYRO_MODULE
     nrf_gpio_cfg_output(ICM20648_CHIPSELECT_PIN_NUMBER);
@@ -65,10 +66,10 @@ void HalSpi0_Init(void)
     nrf_gpio_pin_set(ACCELERATOR_CHIPSELECT_PIN_NUMBER);
 #endif
 
-    nrf_gpio_cfg_output(FLASH_CHIPSELECT_PIN_NUMBER);
-    nrf_gpio_pin_set(FLASH_CHIPSELECT_PIN_NUMBER);
+    nrf_gpio_cfg_output(SPIM0_SS_PIN);
+    nrf_gpio_pin_set(SPIM0_SS_PIN);
 
-
+    
     m_is_spi_initialized = true;
 }
 

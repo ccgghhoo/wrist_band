@@ -5321,7 +5321,7 @@
 // <3=> NRF_GPIO_PIN_PULLUP 
 
 #ifndef NRF_SPI_DRV_MISO_PULLUP_CFG
-#define NRF_SPI_DRV_MISO_PULLUP_CFG 1
+#define NRF_SPI_DRV_MISO_PULLUP_CFG 3
 #endif
 
 // <e> SPI0_ENABLED - Enable SPI0 instance
@@ -5333,7 +5333,7 @@
  
 
 #ifndef SPI0_USE_EASY_DMA
-#define SPI0_USE_EASY_DMA 1
+#define SPI0_USE_EASY_DMA 0
 #endif
 
 // </e>
@@ -5347,7 +5347,7 @@
  
 
 #ifndef SPI1_USE_EASY_DMA
-#define SPI1_USE_EASY_DMA 1
+#define SPI1_USE_EASY_DMA 0
 #endif
 
 // </e>
@@ -5361,7 +5361,7 @@
  
 
 #ifndef SPI2_USE_EASY_DMA
-#define SPI2_USE_EASY_DMA 1
+#define SPI2_USE_EASY_DMA 0
 #endif
 
 // </e>
@@ -7376,7 +7376,7 @@
 // <e> NRF_LOG_BACKEND_UART_ENABLED - nrf_log_backend_uart - Log UART backend
 //==========================================================
 #ifndef NRF_LOG_BACKEND_UART_ENABLED
-#define NRF_LOG_BACKEND_UART_ENABLED 1
+#define NRF_LOG_BACKEND_UART_ENABLED 0
 #endif
 // <o> NRF_LOG_BACKEND_UART_TX_PIN - UART TX pin 
 #ifndef NRF_LOG_BACKEND_UART_TX_PIN
@@ -7421,7 +7421,7 @@
 // <e> NRF_LOG_ENABLED - nrf_log - Logger
 //==========================================================
 #ifndef NRF_LOG_ENABLED
-#define NRF_LOG_ENABLED 1
+#define NRF_LOG_ENABLED 0
 #endif
 // <h> Log message pool - Configuration of log message pool
 

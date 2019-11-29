@@ -25,6 +25,7 @@
 #include "LIS3DH_drv.h"
 
 #include "nrf_drv_spi.h"
+#include "HalSpi.h"
 #include "app_util_platform.h"
 #include "nrf_gpio.h"
 #include "nrf_drv_gpiote.h"
@@ -45,6 +46,9 @@
 #define _50_hz    0x47
 #define _100_hz  0x57 
 
+#define LIS3DH_CS_ENABLE        nrf_gpio_pin_clear(SPIM0_SS_PIN)
+#define LIS3DH_CS_DISABLE       nrf_gpio_pin_set(SPIM0_SS_PIN)
+
 static const nrf_drv_spi_t spi = NRF_DRV_SPI_INSTANCE(SPI_INSTANCE);  /**< SPI instance. */
 static volatile bool spi_xfer_done;  /**< Flag used to indicate that SPI instance completed the transfer. */
 
@@ -55,6 +59,7 @@ AxesRaw_t            m_lis3dh_acc_data;
 
 
 #define   MY_ACC_MODE     0
+#define   SPI_NRF_API     1
 static const uint8_t lis3dh_sleep_cfg[][2] = {
     LIS3DH_CTRL_REG1, 0x27,     // ODR=10Hz, LP enable, X/Y/Z enable
     LIS3DH_CTRL_REG2, 0x09,     // Normal Mode
@@ -125,8 +130,8 @@ void lis3dh_sleep_mode(void)
     
     LIS3DH_WriteReg(0x3e,0x8); //act threshold 8*16mg=128mg   
     LIS3DH_WriteReg(0x3f,0x02); //act duration
-    LIS3DH_WriteReg(LIS3DH_CTRL_REG3,0x00);
-    LIS3DH_WriteReg(LIS3DH_CTRL_REG6,0x08);  
+    LIS3DH_WriteReg(LIS3DH_CTRL_REG3,0x04);
+    LIS3DH_WriteReg(LIS3DH_CTRL_REG6,0x08); 
     //nrf_drv_gpiote_in_event_enable(LIS3DH_INT2_PIN, true);
 #endif   
 }
@@ -149,8 +154,8 @@ void LIS3DH_INT_PIN_init(void)
 
 #if MY_ACC_MODE
     nrf_drv_gpiote_in_config_t int_config = {
-        .sense 			= NRF_GPIOTE_POLARITY_TOGGLE,//NRF_GPIOTE_POLARITY_HITOLO,
-        .pull			= NRF_GPIO_PIN_NOPULL,//NRF_GPIO_PIN_PULLUP,
+        .sense 			= NRF_GPIOTE_POLARITY_TOGGLE,
+        .pull			= NRF_GPIO_PIN_NOPULL,
         .is_watcher 	= false,
         .hi_accuracy	= false,
     };
@@ -165,7 +170,7 @@ void LIS3DH_INT_PIN_init(void)
     
     nrf_drv_gpiote_in_config_t int_config = {
         .sense 			= NRF_GPIOTE_POLARITY_TOGGLE,
-        .pull			= NRF_GPIO_PIN_PULLUP,
+        .pull			= NRF_GPIO_PIN_NOPULL,
         .is_watcher 	= false,
         .hi_accuracy	= false, 
     };
@@ -173,11 +178,13 @@ void LIS3DH_INT_PIN_init(void)
     APP_ERROR_CHECK(nrf_drv_gpiote_in_init(LIS3DH_INT2_PIN,
                                            &int_config,
                                            lis3dh_int_1_evt_handler)
-                   );
-
+                   );   
     nrf_drv_gpiote_in_event_enable(LIS3DH_INT2_PIN, true);
-#endif    
     
+#endif 
+    
+    //nrf_gpio_cfg_input(LIS3DH_INT1_PIN, NRF_GPIO_PIN_NOPULL);
+    nrf_gpio_cfg_default(LIS3DH_INT1_PIN);
     
   }
 /*******************************************************************************
@@ -189,7 +196,7 @@ void LIS3DH_INT_PIN_init(void)
 * Return        : Status [MEMS_ERROR, MEMS_SUCCESS]
 *******************************************************************************/
 void LIS3DH_SpiInit(void) {
-  
+#if SPI_NRF_API  
     nrf_drv_spi_config_t spi_config = NRF_DRV_SPI_DEFAULT_CONFIG;
     spi_config.ss_pin   = SPIM0_SS_PIN;
     spi_config.miso_pin = SPIM0_MISO_PIN;
@@ -197,15 +204,18 @@ void LIS3DH_SpiInit(void) {
     spi_config.sck_pin  = SPIM0_SCK_PIN;
 //    spi_config.frequency    = NRF_DRV_SPI_FREQ_125K;
 //    spi_config.mode = NRF_DRV_SPI_MODE_2;
+    
     APP_ERROR_CHECK(nrf_drv_spi_init(&spi, &spi_config, /*spi_event_handler*/NULL, NULL));
-        
+#else    
+    HalSpi0_Init();
+#endif        
     nrf_delay_ms(1);
     
     LIS3DH_GetWHO_AM_I(m_rx_buf);
     if(m_rx_buf[0]!=LIS3DH_CHIP_ID)
     {
-        NRF_LOG_INFO("ERROR Gsensor!!");
-        return;
+        NRF_LOG_INFO("ERROR CHIP_ID: %X" ,m_rx_buf[0]);
+        //return;
     }
     else
     {
@@ -233,10 +243,10 @@ void LIS3DH_SpiInit(void) {
     
     LIS3DH_WriteReg(LIS3DH_INT1_CFG, 0x00); 
       
-    LIS3DH_WriteReg(LIS3DH_CTRL_REG1,0x57); //47=50HZ NORMAL MODE  57= 100HZ   
+    LIS3DH_WriteReg(LIS3DH_CTRL_REG1,_100_hz); //47=50HZ NORMAL MODE  57= 100HZ   
 
     LIS3DH_WriteReg(LIS3DH_CTRL_REG2,0x00); //cannot enable high pass filter, data 
-
+//
     //LIS3DH_SetInt1Pin(LIS3DH_INT1_OVERRUN_ENABLE | LIS3DH_WTM_ON_INT1_ENABLE);
     LIS3DH_WriteReg(LIS3DH_CTRL_REG3,0x00); //06=overrun+watermark  10=XYZdata interrupt on INT1
 
@@ -250,18 +260,10 @@ void LIS3DH_SpiInit(void) {
     LIS3DH_WriteReg(LIS3DH_CTRL_REG6,0x00);  //active int out to INT2 ,polarity active low
     LIS3DH_WriteReg(0x26,0x00);
     LIS3DH_WriteReg(0x3e,0x00); //act threshold 2*32mg=64mg   
-    LIS3DH_WriteReg(0x3f,0x00); //act duration
-//    LIS3DH_WriteReg(0x3e,0x4); //act threshold 2*32mg=64mg   
-//    LIS3DH_WriteReg(0x3f,0x02); //act duration
+    LIS3DH_WriteReg(0x3f,0x00); //act duration   
     
-//    LIS3DH_ReadReg(0x26,m_rx_buf);
-//    LIS3DH_ReadReg(0x31,m_rx_buf);//INT1 SRC
-//        uint8_t length, fifo_src; 
-//        LIS3DH_GetFifoSourceFSS(&length); //clear the int1 flag!
-//        for(uint8_t i=0; i<length; i++)
-//        {
-//            LIS3DH_GetAccAxesRaw(&m_lis3dh_acc_data);    
-//        }    
+//       LIS3DH_spi_uninit(); 
+    
 #endif
 }
 
@@ -275,7 +277,8 @@ void LIS3DH_SpiInit(void) {
 * Return        : None
 *******************************************************************************/
 uint8_t LIS3DH_ReadReg(uint8_t Reg, uint8_t* recData) {
-  
+ 
+#if SPI_NRF_API    
   uint32_t error_code;
   m_tx_buf[0]=Reg; 
   m_tx_buf[0]|= 0x80;
@@ -294,7 +297,16 @@ uint8_t LIS3DH_ReadReg(uint8_t Reg, uint8_t* recData) {
       //NRF_LOG_INFO("read gsesor reg faillll!!!");
       *recData=0;
       return MEMS_ERROR; 
-  }      
+  }
+#else
+ 
+    LIS3DH_CS_ENABLE;
+    HalSpi0_Xfer(Reg | 0x80);
+    *recData =  HalSpi0_Xfer(0xff);
+    LIS3DH_CS_DISABLE;
+    return MEMS_SUCCESS;
+#endif    
+  
   
 }
 
@@ -308,7 +320,7 @@ uint8_t LIS3DH_ReadReg(uint8_t Reg, uint8_t* recData) {
 * Return        : None
 *******************************************************************************/
 uint8_t LIS3DH_WriteReg(uint8_t WriteAddr, uint8_t Data) {
-	
+#if SPI_NRF_API	
   uint32_t error_code;    
   m_tx_buf[0]=WriteAddr;
   m_tx_buf[1]=Data;  
@@ -324,9 +336,15 @@ uint8_t LIS3DH_WriteReg(uint8_t WriteAddr, uint8_t Data) {
   {
       //NRF_LOG_INFO("write gsesor reg faillll!!!");
       return MEMS_ERROR; 
-  }      
+  } 
+#else
+    LIS3DH_CS_ENABLE;
+    HalSpi0_Xfer(WriteAddr);
+    HalSpi0_Xfer(Data);
+    LIS3DH_CS_DISABLE;  
 
-  
+    return MEMS_SUCCESS;
+#endif    
 }
 
 

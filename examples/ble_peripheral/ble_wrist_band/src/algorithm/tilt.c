@@ -40,7 +40,7 @@
 enum
 {
     TILT_PREPARE,   //准备.
-    TILT_COUNT,             //状态计量.
+    TILT_COUNT,     //状态计量.
     TILT_STATIC,    //产品静止.
     TILT_REBACK_FIRST,
 };

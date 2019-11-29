@@ -4,22 +4,19 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
-//#include "log.h"
 
-
-#define APP_FW_HW_VER			(0x90)//
 
 // <h> Property
 // <o> Device Module Name
 // <i> define this project module code
 #ifndef PROPERTY_MODULE_NAME
-#define PROPERTY_MODULE_NAME	0x20190916
+#define PROPERTY_MODULE_NAME	0x20191129
 #endif
 
-#define VER_H (0)
-#define VER_M (0)
-#define VER_L (0)
-#define VER_ML (1)
+#define VER_H   (0)
+#define VER_M   (0)
+#define VER_L   (0)
+#define VER_ML  (3)
 
 // <o> Firmware Version
 #ifndef PROPERTY_FIRMWARE_VER
@@ -28,7 +25,7 @@
 
 // <s> Firmware Version String
 #ifndef DEVICE_NAME
-#define DEVICE_NAME						"eview_wrist_band"
+#define DEVICE_NAME						"WB01"
 #endif
 
 #define  DEGREE  1

@@ -32,10 +32,10 @@
 #include  "app_init.h"
 
 
-#define DEV_NAME                        "WB01"                       /**< Name of device. Will be included in the advertising data. */
-#define MANUFACTURER_NAME               "eview"                   /**< Manufacturer. Will be passed to Device Information Service. */
-#define APP_ADV_INTERVAL                300                                     /**< The advertising interval (in units of 0.625 ms. This value corresponds to 187.5 ms). */
-#define APP_ADV_INERVAL_CONNECTED       1000
+//#define DEV_NAME                        "WB011"                       /**< Name of device. Will be included in the advertising data. */
+//#define MANUFACTURER_NAME               "eview"                   /**< Manufacturer. Will be passed to Device Information Service. */
+#define APP_ADV_INTERVAL                800          /*800*0.625=0.5s */
+#define APP_ADV_INERVAL_CONNECTED       1600
 
 #define APP_ADV_DURATION                0//18000                                   /**< The advertising duration (180 seconds) in units of 10 milliseconds. */
 #define APP_BLE_OBSERVER_PRIO           3                                       /**< Application's BLE observer priority. You shouldn't need to modify this value. */
@@ -195,8 +195,8 @@ static void gap_params_init(void)
     BLE_GAP_CONN_SEC_MODE_SET_OPEN(&sec_mode);
 
     err_code = sd_ble_gap_device_name_set(&sec_mode,
-                                          (const uint8_t *)DEV_NAME,
-                                          strlen(DEV_NAME));
+                                          (const uint8_t *)DEVICE_NAME,
+                                          strlen(DEVICE_NAME));
     APP_ERROR_CHECK(err_code);
 
     /* Use an appearance value matching the application's use case.
@@ -331,27 +331,6 @@ static void conn_params_init(void)
 }
 
 
-/**@brief Function for putting the chip into sleep mode.
- *
- * @note This function will not return.
- */
-/*static void sleep_mode_enter(void)
-{
-  
-    ret_code_t err_code;
-
-    err_code = bsp_indication_set(BSP_INDICATE_IDLE);
-    APP_ERROR_CHECK(err_code);
-
-    // Prepare wakeup buttons.
-    err_code = bsp_btn_ble_sleep_mode_prepare();
-    APP_ERROR_CHECK(err_code);
-
-    // Go to system-off mode (this function will not return; wakeup will cause a reset).
-    err_code = sd_power_system_off();
-    //APP_ERROR_CHECK(err_code);  //
-}
-*/
 
 /**@brief Function for starting advertising.
  */
@@ -377,15 +356,10 @@ static void on_adv_evt(ble_adv_evt_t ble_adv_evt)
     {
         case BLE_ADV_EVT_FAST:
             NRF_LOG_INFO("Fast advertising.");
-            //err_code = bsp_indication_set(BSP_INDICATE_ADVERTISING);
-            //APP_ERROR_CHECK(err_code);
-            //app_led_indicate_set(LED_FUN_BLE_ADVERTISING);
             //Indicator_Evt(ALERT_TYPE_BLE_ADV);
             break;
 
-        case BLE_ADV_EVT_IDLE:
-            //sleep_mode_enter();    //power off
-          
+        case BLE_ADV_EVT_IDLE:          
             //advertising_start();
             //NRF_LOG_INFO("start advertising");
             //Indicator_Evt(ALERT_TYPE_BLE_ADV_END);
@@ -413,30 +387,17 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             // LED indication will be changed when advertising starts.
             m_conn_handle = BLE_CONN_HANDLE_INVALID;
             update_adv_data();
-//            sd_ble_gap_adv_stop(m_advertising.adv_handle);
-//            advertising_init_2(true);           
-//            sd_ble_gap_adv_start(m_advertising.adv_handle, APP_BLE_CONN_CFG_TAG);
-            ///bsp_indication_set(BSP_INDICATE_ADVERTISING);
-            //app_led_indicate_set(LED_FUN_BLE_ADVERTISING);
             Indicator_Evt(ALERT_TYPE_BLE_DISCONNECTED);
             //Indicator_Evt(ALERT_TYPE_BLE_ADV);
             break;
 
         case BLE_GAP_EVT_CONNECTED:
-            NRF_LOG_INFO("Connected.");
-            
-            //app_led_indicate_set(LED_FUN_BLE_CONNECTED); 
+            NRF_LOG_INFO("Connected.");            
             Indicator_Evt(ALERT_TYPE_BLE_CONNECTED);
-            //Indicator_Evt(ALERT_TYPE_BLE_ADV_END);
-            
-            m_conn_handle = p_ble_evt->evt.gap_evt.conn_handle;
-            err_code = nrf_ble_qwr_conn_handle_assign(&m_qwr, m_conn_handle);
-            APP_ERROR_CHECK(err_code);
-            
+            //Indicator_Evt(ALERT_TYPE_BLE_ADV_END);            
+            m_conn_handle = p_ble_evt->evt.gap_evt.conn_handle;            
             update_adv_data();
-            
-//            advertising_init_2(false);
-//            sd_ble_gap_adv_start(m_advertising.adv_handle, APP_BLE_CONN_CFG_TAG);
+                       
             break;
 
         case BLE_GAP_EVT_PHY_UPDATE_REQUEST:
@@ -544,23 +505,25 @@ static void bsp_event_handler(bsp_event_t event)
 
     switch (event)
     {
+        case BSP_EVENT_SOS_RELEASE:
+            Indicator_Evt(ALERT_TYPE_KEY_RELEASE);
+            NRF_LOG_INFO("button released!!");
+            break;
+        
         case BSP_EVENT_KEY_0:           
             //update_adv_data();
-            clear_app_evt(APP_EVT_SOS_ALARM);
+            Indicator_Evt(ALERT_TYPE_KEY_CLICK);
+//            clear_app_evt(APP_EVT_SOS_ALARM);
             NRF_LOG_INFO("button pressed one time!!");
             
-            break; // BSP_EVENT_SLEEP
+            break; 
 
         case BSP_EVENT_SOS:
-          
+            Indicator_Evt(ALERT_TYPE_KEY_PRESS);
+            set_app_evt(APP_EVT_SOS_ALARM);
             NRF_LOG_INFO("button pressed long time, SOS!!");
-//            uint8_t string[]="button pressed long time, SOS!!";
-//            uint16_t len=strlen(string);
-//            //uint32_t reslt=app_nus_send_data(string, &len);
-//            ble_send_proto_data_pack(string, len, 0); 
-            set_app_evt(APP_EVT_SOS_ALARM);    
-            //ble_sos_key_send();
-            break; // 
+                
+            break;  
 
         default:
             break;
@@ -590,14 +553,14 @@ void  update_adv_data(void)
   uint8_t adv_data[12];
   ret_code_t    err_code;
   
-    adv_data[0] = LSB_16(COMPANY_IDENTIFIER);//company_id >> 0);
-    adv_data[1] = MSB_16(COMPANY_IDENTIFIER);//company_id >> 8);
+    adv_data[0] = LSB_16(COMPANY_IDENTIFIER);
+    adv_data[1] = MSB_16(COMPANY_IDENTIFIER);
     
-    adv_data[2] = 0x01;//version;
-    adv_data[3] = 0x20;//.module_id >> 0);
-    adv_data[4] = 0x19;//.module_id >> 8);
-    adv_data[5] = 0x09;//.module_id >> 16);
-    adv_data[6] = 0x20;//.module_id >> 24);
+    adv_data[2] = 0x00;//version;
+    adv_data[3] = (uint8_t)(PROPERTY_MODULE_NAME >> 0);
+    adv_data[4] = (uint8_t)(PROPERTY_MODULE_NAME >> 8);
+    adv_data[5] = (uint8_t)(PROPERTY_MODULE_NAME >> 16);
+    adv_data[6] = (uint8_t)(PROPERTY_MODULE_NAME >> 24);
     adv_data[7] = batt_level_get();//.battery);
     
     uint16_t  states=0;    
@@ -708,12 +671,12 @@ static void advertising_init(void)
     adv_data[0] = LSB_16(COMPANY_IDENTIFIER);//company_id >> 0);
     adv_data[1] = MSB_16(COMPANY_IDENTIFIER);//company_id >> 8);
     
-    adv_data[2] = 0x01;//version;
-    adv_data[3] = 0x20;//.module_id >> 0);
-    adv_data[4] = 0x19;//.module_id >> 8);
-    adv_data[5] = 0x09;//.module_id >> 16);
-    adv_data[6] = 0x20;//.module_id >> 24);
-    adv_data[7] = batt_level_get();//.battery);
+    adv_data[2] = 0x00;//version;
+    adv_data[3] = (uint8_t)(PROPERTY_MODULE_NAME >> 0);
+    adv_data[4] = (uint8_t)(PROPERTY_MODULE_NAME >> 8);
+    adv_data[5] = (uint8_t)(PROPERTY_MODULE_NAME >> 16);
+    adv_data[6] = (uint8_t)(PROPERTY_MODULE_NAME >> 24);
+    adv_data[7] = batt_level_get();//battery);
     
     uint16_t  states=0;    
     adv_data[8] = states >> 0;
@@ -801,11 +764,8 @@ static void bl_radio_init(void)
 
 void ble_role_init(void)
 {
-//    timers_init();
-//    buttons_leds_init();
-    
+
     ble_stack_init();
-    //bl_radio_init();   //²»ÐèÒª
     gap_params_init();
     gatt_init();
     advertising_init();

@@ -238,7 +238,7 @@ void app_fds_new_day_handle(void)
 void reset_find_token(void)
 {
     m_find_token.b_find_begin = 0;
-    m_find_token.b_find_end = 0;
+    //m_find_token.b_find_end = 0;
     m_find_token.ftoken.page =0;
     m_find_token.ftoken.p_addr = 0;
     m_find_token.read_day_index = 0;
@@ -280,6 +280,7 @@ bool  find_read_sport_record(uint32_t *readDataBuff, uint16_t  *ReadLength, uint
         if(++m_find_token.delay_s>3620) //
         {
             reset_find_token();
+            m_find_token.b_find_end = 0;
         }
         else
         {
@@ -300,9 +301,17 @@ bool  find_read_sport_record(uint32_t *readDataBuff, uint16_t  *ReadLength, uint
     {
         fds_header_t const * p_header = (fds_header_t*)m_find_token.ftoken.p_addr;
         *ReadLength = sizeof(uint32_t)*p_header->length_words;
-        readDataBuff = (uint32_t *)m_read_data_buff;
-        memcpy(readDataBuff, m_find_token.ftoken.p_addr+3, sizeof(uint32_t)*p_header->length_words);          
-        //fds_record_delete(&m_find_token.fdesc);
+        *readDataBuff = (uint32_t)m_read_data_buff;
+        memcpy(m_read_data_buff, (uint32_t *)m_find_token.ftoken.p_addr+3, *ReadLength);
+        
+        //NRF_LOG_INFO("read sprot length: %x", *ReadLength)
+//         NRF_LOG_INFO("m_read_data_buff = : %x", m_read_data_buff);   
+//         NRF_LOG_INFO("readDataBuff = : %x", *readDataBuff);   
+        //NRF_LOG_HEXDUMP_INFO((uint8_t *)readDataBuff, 80);  //长度好像不能超过80字节
+        //NRF_LOG_HEXDUMP_INFO(((uint8_t *)readDataBuff)+80, 16);
+        
+        //NRF_LOG_HEXDUMP_INFO(m_read_data_buff, 48);  //长度好像不能超过80字节
+        //NRF_LOG_HEXDUMP_INFO(&m_read_data_buff[48], 48);
         return true;
     }
     else

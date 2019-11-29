@@ -84,10 +84,8 @@ static void power_management_init(void)
  */
 static void idle_state_handle(void)
 {
-    __WFE();
-    return;
     
-    if (NRF_LOG_PROCESS() == false)
+    //if (NRF_LOG_PROCESS() == false)
     {
         nrf_pwr_mgmt_run();
     }
@@ -108,13 +106,13 @@ static void main_loop(void)
     md_process();
     
     app_wdt_reload(); 
-    
-    //nrf_delay_ms(4100);//test bootloader WDT=4000ms
+
 }
 
 
 /**@brief Function for application main entry.
  */
+#include "nrf_power.h"     
 int main(void)
 {
 
@@ -123,14 +121,10 @@ int main(void)
     NRF_LOG_INFO("start main !!!");
     
     power_management_init();
-    
-// batt_adc_init();
-    
-// ble_role_init();
-    
+      
     app_init();
 
-    cpy_fw();
+    cpy_fw();  //没有实际作用 为了防止编译器优化
     
     battery_level_cal();
     batt_voltage_get(); 
@@ -142,6 +136,7 @@ int main(void)
         main_loop();
                 
         idle_state_handle();
+        //nrf_power_system_off(); //for test
     }
 }
 

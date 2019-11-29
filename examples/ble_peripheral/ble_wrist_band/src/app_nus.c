@@ -22,6 +22,7 @@
 #include "dfu.h"
 #include "app_flash_drv.h"
 #include "nrf_delay.h"
+#include "app_init.h"
 
 #if 0
 #include "nrf_log.h"
@@ -340,12 +341,14 @@ bool BLE_IsConnect()
 }
 
 
-void ble_send_proto_data_pack(uint8_t *data, uint16_t len, uint8_t flag)
+//****************************************************************************
+
+bool ble_send_proto_data_pack(uint8_t *data, uint16_t len, uint8_t flag)
 {
     if (BLE_IsConnect() == false)
     {        
         NUS_LOG("[NUS]:ble disconnected, send data fail!\r\n");
-        return;
+        return false;
     }
     
     uint8_t *data_buff = (uint8_t *)APP_MALLOC(PROTO_PACK_DATA_PACK, len + 8);
@@ -353,7 +356,7 @@ void ble_send_proto_data_pack(uint8_t *data, uint16_t len, uint8_t flag)
     if (data_buff == NULL)
     {
         NUS_LOG("[NUS]: no more buffer \r\n ");
-        return;
+        return false;
     }
  	        
 	msg_packet_t 	respHead; 
@@ -374,6 +377,8 @@ void ble_send_proto_data_pack(uint8_t *data, uint16_t len, uint8_t flag)
     
     
     app_nus_tx_data_put(data_buff, len+8);
+    
+    return true;
 
 }
 
@@ -394,6 +399,20 @@ void ble_sos_key_send(void)
     ble_send_proto_data_pack(databuff, 5, 1);     
 }
 
+void ble_utc_time_req_send(void)
+{
+    if (BLE_IsConnect() == false)
+    {        
+        NUS_LOG("[NUS]:ble disconnected");
+        return;
+    }
+    uint8_t  databuff[8];           
+    databuff[0] = COMMAND_ID_BLE_BASE;
+    databuff[1] = 3;
+    databuff[2] = BLE_WB_UPDATE_UTC_SECONDS;  
+    ble_send_proto_data_pack(databuff, 3, 1);     
+}
+
 void ble_sport_data_send(void)
 {
     if (BLE_IsConnect() == false)
@@ -402,26 +421,51 @@ void ble_sport_data_send(void)
         return;
     }
     
-    uint32_t  *sport_data;
+    static uint8_t send_time_out=0;
+    if(check_app_evt(APP_EVT_SPORT_SEND_WAIT))
+    {
+        if(++send_time_out<15)//30=1minute
+        {
+            return;
+        }
+        else
+        {
+            send_time_out = 0;
+            clear_app_evt(APP_EVT_SPORT_SEND_WAIT);
+        }
+    }
+    
+    uint32_t  p_sport_data;
     uint16_t  len;
     bool      ret;
     
-    ret = find_read_sport_record(sport_data, &len, 0);
+    ret = find_read_sport_record(&p_sport_data, &len, 0);   
     if(!ret)
     {
         NUS_LOG("[NUS]:no sport data ");
         return;
     }
+    if(p_sport_data<0x20001c18) //ram_start = 0x20001c18
+    {
+        NUS_LOG("[NUS]:access sport data error! ram address : %d ", p_sport_data);
+        return;
+    }
+    
+//    NRF_LOG_HEXDUMP_INFO((uint8_t*)p_sport_data, 80);
+//    NRF_LOG_HEXDUMP_INFO((uint8_t*)(p_sport_data+80), 16);
         
     uint8_t  databuff[104];
     databuff[0] = COMMAND_ID_BLE_BASE;
     databuff[1] = 1+96;
     databuff[2] = BLE_WB_READ_SPORT_DATA;
     
-    memcpy(&databuff[3], (uint8_t *)sport_data, len);
+    memcpy(&databuff[3], (uint8_t*)p_sport_data, len);
 
-    ble_send_proto_data_pack(databuff, 99, 1);  //3+96
-               
+    if(ble_send_proto_data_pack(databuff, 99, 1)) //3+96
+    {
+        set_app_evt(APP_EVT_SPORT_SEND_WAIT);
+    }
+             
 }
 
 

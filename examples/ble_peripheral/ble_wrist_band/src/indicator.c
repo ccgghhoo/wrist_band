@@ -165,8 +165,8 @@ const IndEvt_t csg_sPower100Evt[] = {
 };
 
 const IndEvt_t csg_sBatLowEvt[] = {
-    { .on = 1, .value = TIME_MS(100), },
-    { .on = 0, .value = TIME_MS(2900), },
+    { .on = 1, .value = TIME_MS(100), }, //100
+    { .on = 0, .value = TIME_MS(1000), },//2900
 };
 const IndEvt_t csg_sChargeEndEvt[] = {
     { .on = 1, .value = TIME_MS(10000), },
@@ -633,7 +633,7 @@ void Alert_PowerOffIndicator()
     nrf_delay_ms(200);
     nrf_gpio_pin_clear(MOTOR_PIN_NUMBER);
 
-    nrf_gpio_cfg_default(RED_LED_PIN_NUMBER);
+    //nrf_gpio_cfg_default(RED_LED_PIN_NUMBER);  //chen 不能设为输入 否则造成大电流
     nrf_gpio_pin_set(RED_LED_PIN_NUMBER);
     nrf_gpio_cfg_output(BLUE_LED_PIN_NUMBER);
     nrf_gpio_pin_clear(BLUE_LED_PIN_NUMBER);
@@ -642,14 +642,14 @@ void Alert_PowerOffIndicator()
 }
 void Alert_AllOff()
 {
-    nrf_gpio_cfg_default(RED_LED_PIN_NUMBER);
+    //nrf_gpio_cfg_default(RED_LED_PIN_NUMBER);
     nrf_gpio_pin_set(RED_LED_PIN_NUMBER);
 
-    nrf_gpio_cfg_default(GREEN_LED_PIN_NUMBER);
+    //nrf_gpio_cfg_default(GREEN_LED_PIN_NUMBER);
     nrf_gpio_pin_set(GREEN_LED_PIN_NUMBER);
 
 
-    nrf_gpio_cfg_default(BLUE_LED_PIN_NUMBER);
+    //nrf_gpio_cfg_default(BLUE_LED_PIN_NUMBER);
     nrf_gpio_pin_set(BLUE_LED_PIN_NUMBER);
 
 
@@ -667,7 +667,7 @@ static __INLINE void alert_red_led_action(bool on)
     }
     else
     {
-        nrf_gpio_cfg_default(RED_LED_PIN_NUMBER);
+        //nrf_gpio_cfg_default(RED_LED_PIN_NUMBER);
         nrf_gpio_pin_set(RED_LED_PIN_NUMBER);
     }
 }
@@ -685,7 +685,7 @@ static __INLINE void alert_green_led_action(bool on)
     }
     else
     {
-        nrf_gpio_cfg_default(GREEN_LED_PIN_NUMBER);
+        //nrf_gpio_cfg_default(GREEN_LED_PIN_NUMBER);
         nrf_gpio_pin_set(GREEN_LED_PIN_NUMBER);
     }
 }
@@ -701,7 +701,7 @@ static __INLINE void alert_blue_led_action(bool on)
     }
     else
     {
-        nrf_gpio_cfg_default(BLUE_LED_PIN_NUMBER);
+        //nrf_gpio_cfg_default(BLUE_LED_PIN_NUMBER);
         nrf_gpio_pin_set(BLUE_LED_PIN_NUMBER);
     }
 }

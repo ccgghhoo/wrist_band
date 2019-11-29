@@ -17,6 +17,11 @@
 #define MAX_BATTER_ADC  			2503  	//4.1v
 #define BATT_LOW_POWER_LEVEL        20
 
+#define BIT_MASK_CHARGING           0x01
+#define BIT_MASK_CHARGING_FULL      0x02
+#define BIT_MASK_BATT_LOW           0x08
+#define BIT_MASK_BATT_LVL_UPDATE    0x04
+
 typedef struct
 {
     uint16_t adc_value;
@@ -189,7 +194,8 @@ uint8_t battery_level_cal(void)
         batt_level = (batt_adc_value-min_batt_adc)*100/(MAX_BATTER_ADC-min_batt_adc);
     }
     
-    if(m_battery.batt_level !=batt_level)
+    if((m_battery.batt_level-batt_level)>2)
+    //if(m_battery.batt_level!=batt_level)
     {
         m_battery.batt_level = batt_level;
         m_battery.batt_level_update_flag = 1;
@@ -274,6 +280,7 @@ bool batt_charging_check(void)
         if(m_battery.charging_flag==0)
         {
             batt_charg_enable(true);
+            //Indicator_Evt(ALERT_TYPE_IN_CHARGING);
         }
     }
     else
@@ -281,6 +288,7 @@ bool batt_charging_check(void)
         if(m_battery.charging_flag)
         {
             batt_charg_enable(false);
+            //Indicator_Evt(ALERT_TYPE_DISCHARGE);
         }
     }
     
@@ -302,19 +310,25 @@ batt_status_t batt_status_get(void)
     {
         if(m_battery.charg_full_flag)
         {
-            Indicator_Evt(ALERT_TYPE_CHARGE_FULL);
+            //if(!(pre_batt_state&BIT_MASK_CHARGING_FULL))
+            {   
+                Indicator_Evt(ALERT_TYPE_CHARGE_FULL);
+            }
             ret=  BATT_STATUS_CHARG_FULL;
         }
         else
         {
-            Indicator_Evt(ALERT_TYPE_IN_CHARGING);
+            if(!(pre_batt_state&BIT_MASK_CHARGING))
+            {
+                Indicator_Evt(ALERT_TYPE_IN_CHARGING);  //ÎÞÏÞÑ­»·
+            }
             //NRF_LOG_INFO("batt status charging "); 
             ret=  BATT_STATUS_CHARGING;
         }
     }
     else
     {
-        if(pre_batt_state&0x01)
+        if(pre_batt_state&BIT_MASK_CHARGING)
         {
             Indicator_Evt(ALERT_TYPE_DISCHARGE);       
             m_battery.charg_full_flag = 0;
@@ -322,13 +336,16 @@ batt_status_t batt_status_get(void)
         
         if(m_battery.batt_low_flag)
         {
-            //Indicator_Evt(ALERT_TYPE_BATTERY_POWER_LOW);
+            Indicator_Evt(ALERT_TYPE_BATTERY_POWER_LOW);
             //NRF_LOG_INFO("batt status low power ");
             ret=  BATT_STATUS_LOW_POWER;
         }
         else
         {
-            //Indicator_Evt(ALERT_TYPE_BATTERY_POWER_NORMAL);
+            if(pre_batt_state&ALERT_TYPE_BATTERY_POWER_LOW)
+            {
+                Indicator_Evt(ALERT_TYPE_BATTERY_POWER_NORMAL);
+            }            
             //NRF_LOG_INFO("batt status normal ");
             ret=  BATT_STATUS_NORMAL;
         }

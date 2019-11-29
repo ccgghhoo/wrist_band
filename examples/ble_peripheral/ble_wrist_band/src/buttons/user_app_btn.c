@@ -43,9 +43,9 @@
 
 #define BTN_ID_WAKEUP             0  /**< ID of button used to wake up the application. */
 #define BTN_ID_SOS                0  /**< ID of button used to put the application into sleep mode. */
-#define BTN_ID_SLEEP              0 
+#define BTN_ID_SOS_RELEASE        0 
 
-#define BTN_ACTION_SLEEP          BSP_BUTTON_ACTION_RELEASE    /**< Button action used to put the application into sleep mode. */
+#define BTN_ACTION_SOS_RELEASE    BSP_BUTTON_ACTION_RELEASE    /**< Button action used to put the application into sleep mode. */
 #define BTN_ACTION_SOS            BSP_BUTTON_ACTION_LONG_PUSH  /**< Button action used to gracefully terminate a connection on long press. */
 
 /**@brief This macro will return from the current function if err_code
@@ -100,9 +100,9 @@ static uint32_t user_buttons_configure()
 {
     uint32_t err_code;
 
-    err_code = bsp_event_to_button_action_assign(BTN_ID_SLEEP,
-                                                 BTN_ACTION_SLEEP,
-                                                 BSP_EVENT_DEFAULT);
+    err_code = bsp_event_to_button_action_assign(BTN_ID_SOS_RELEASE,
+                                                 BTN_ACTION_SOS_RELEASE,
+                                                 BSP_EVENT_SOS_RELEASE);
     RETURN_ON_ERROR_NOT_INVALID_PARAM(err_code);
 
     err_code = bsp_event_to_button_action_assign(BTN_ID_SOS,

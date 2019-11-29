@@ -80,6 +80,7 @@ void md_app_tilt_falldown_event_received(uint32_t input_event);  //chen
 void md_set_wakeup(void);
 bool md_get_wakeup(void);
 uint32_t md_app_get_step_counter(void);
+void md_app_set_step_counter(uint32_t step_cnt);
 md_t * md_app_get_motion_status(void);
 void md_motion_or_static_alert_judge(void);
 void md_motion_int_en(uint32_t );

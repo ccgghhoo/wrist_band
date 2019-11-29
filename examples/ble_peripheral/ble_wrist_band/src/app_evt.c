@@ -40,17 +40,19 @@ void app_evt_poll(void)
       {
           ble_sport_data_send();          
       }
-      
-      
+            
 #ifdef DEGREE
-      //NRF_LOG_INFO("DGEGREE");
       md_module_period_one_second();
      
       if(m_user_time_senconds%300==0)//300
       {
-          //if(UTC_IsValid())  //时间有效才存储
+          if(1)//(UTC_IsValid())  //时间有效才存储
           {
-                md_module_period_save();//
+             md_module_period_save();//
+          }
+          else
+          {
+             ble_utc_time_req_send(); 
           }
       }
       
@@ -62,7 +64,8 @@ void app_evt_poll(void)
       //if ((ret & RTC_CHANGE_IN_HOUR) > 0) 
       //if ((ret & RTC_CHANGE_IN_MINUTE) > 0)
       {          
-           app_fds_new_day_handle();        
+           app_fds_new_day_handle();
+           md_app_set_step_counter(0);
       }
       
             
@@ -98,12 +101,7 @@ void app_evt_poll(void)
       }                           
   }
   
-  
-  if(check_app_evt(APP_EVT_PROTOCOL_DATA_HANDLE))
-  {
-    
-  }
-  
+
   
   
 }

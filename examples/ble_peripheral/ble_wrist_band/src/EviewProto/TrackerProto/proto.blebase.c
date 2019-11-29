@@ -275,6 +275,7 @@ static int ProtoBLEwb_sportData(struct objEpbProto *obj, uint8_t key, const uint
     if(*p_data == 0)
     {       
         del_current_sport_record(); 
+        clear_app_evt(APP_EVT_SPORT_SEND_WAIT);
         return EPB_SUCCESS;
     }
     else
@@ -290,10 +291,11 @@ static int ProtoBLEwb_updateTime(struct objEpbProto *obj, uint8_t key, const uin
        
     uint32_t utc = p_data[0] + (p_data[1]<<8) + (p_data[2]<<16) + (p_data[3]<<24);
     
-    UTC_SetValue(utc) ;    
+    UTC_SetValue(utc) ;  
+    DateTime_UTC2DateTime(utc);   
     
     //Proto_RespPositive(objEpbProto_t *obj, uint8_t cmd, uint8_t key)
-    //Proto_RespNegative(obj, EPB_SUCCESS);   
+    Proto_RespNegative(obj, EPB_SUCCESS);   
     
     return EPB_SUCCESS;
 }

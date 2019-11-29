@@ -321,9 +321,7 @@ static void md_mode_change(void)
 {
     if (md.wakeup)
     {
-        md.wakeup = false; //chen
-//        (void)lis3dh_read_int1_src();
-//        LIS3DH_GetFifoSourceReg(&fifo_src);
+        md.wakeup = false; 
 
         if (!md.workmode)
         {
@@ -572,16 +570,7 @@ void md_init(void)
     LIS3DH_SpiInit();
     
     LIS3DH_INT_PIN_init();    
-//    dev_conf_init_t  dev_conf_obj;
-//    dev_conf_obj.cb = dev_config_value_change;    
-//    dev_conf_init(&dev_conf_obj);
 
-    // init mems
-//    lis3dh_init_t   lis3dh_init_obj;
-//    lis3dh_init_obj.evt_handle = md_wakeup;
-//    lis3dh_init(&lis3dh_init_obj);
-    
-//    md__int_pin_init();  // 2019/07/11
     
     // register algorithm evt callback
     algo_init_t     algo_init_obj;

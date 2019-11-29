@@ -40,7 +40,7 @@ typedef struct {
 
 #define FILTER_ORDER            4
 #define WINDOWS_SIZE            16 //10*16 160ms
-#define SLEEP_SECOND            ( 4 * 60 )
+#define SLEEP_SECOND            20//( 4 * 60 ) //4 chen
 
 
 static const vector3_t           zero_vector = { 0 };

@@ -147,7 +147,7 @@ typedef enum
     BSP_EVENT_NOTHING = 0,                  /**< Assign this event to an action to prevent the action from generating an event (disable the action). */
     BSP_EVENT_DEFAULT,                      /**< Assign this event to an action to assign the default event to the action. */
     BSP_EVENT_SOS,
-    BSP_EVENT_SLEEP,                        /**< The device should enter sleep mode. */
+    BSP_EVENT_SOS_RELEASE,                 
     BSP_EVENT_WAKEUP,                       /**< The device should wake up from sleep mode. */
     BSP_EVENT_SYSOFF,                       /**< The device should enter system off mode (without wakeup). */
     BSP_EVENT_DFU,                          /**< The device should enter DFU mode. */
