@@ -408,7 +408,7 @@ void ble_utc_time_req_send(void)
     }
     uint8_t  databuff[8];           
     databuff[0] = COMMAND_ID_BLE_BASE;
-    databuff[1] = 3;
+    databuff[1] = 1;
     databuff[2] = BLE_WB_UPDATE_UTC_SECONDS;  
     ble_send_proto_data_pack(databuff, 3, 1);     
 }

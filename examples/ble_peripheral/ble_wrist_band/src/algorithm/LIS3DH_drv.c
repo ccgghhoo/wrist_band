@@ -42,6 +42,8 @@
 
 #define SPI_INSTANCE  0 /**< SPI instance index. */
 #define LIS3DH_CHIP_ID  0X33
+#define MY_ACC_MODE     0
+#define SPI_NRF_API     1
 #define _25_hz    0x37
 #define _50_hz    0x47
 #define _100_hz  0x57 
@@ -58,8 +60,6 @@ static uint8_t       m_rx_buf[8];      /**< RX buffer. */
 AxesRaw_t            m_lis3dh_acc_data;
 
 
-#define   MY_ACC_MODE     0
-#define   SPI_NRF_API     1
 static const uint8_t lis3dh_sleep_cfg[][2] = {
     LIS3DH_CTRL_REG1, 0x27,     // ODR=10Hz, LP enable, X/Y/Z enable
     LIS3DH_CTRL_REG2, 0x09,     // Normal Mode
@@ -215,7 +215,7 @@ void LIS3DH_SpiInit(void) {
     if(m_rx_buf[0]!=LIS3DH_CHIP_ID)
     {
         NRF_LOG_INFO("ERROR CHIP_ID: %X" ,m_rx_buf[0]);
-        //return;
+        return;
     }
     else
     {
@@ -299,11 +299,12 @@ uint8_t LIS3DH_ReadReg(uint8_t Reg, uint8_t* recData) {
       return MEMS_ERROR; 
   }
 #else
- 
+    HalSpi0_Enable();
     LIS3DH_CS_ENABLE;
     HalSpi0_Xfer(Reg | 0x80);
     *recData =  HalSpi0_Xfer(0xff);
     LIS3DH_CS_DISABLE;
+    HalSpi0_Disable();
     return MEMS_SUCCESS;
 #endif    
   
@@ -338,11 +339,12 @@ uint8_t LIS3DH_WriteReg(uint8_t WriteAddr, uint8_t Data) {
       return MEMS_ERROR; 
   } 
 #else
+    HalSpi0_Enable();
     LIS3DH_CS_ENABLE;
     HalSpi0_Xfer(WriteAddr);
     HalSpi0_Xfer(Data);
     LIS3DH_CS_DISABLE;  
-
+    HalSpi0_Disable();
     return MEMS_SUCCESS;
 #endif    
 }

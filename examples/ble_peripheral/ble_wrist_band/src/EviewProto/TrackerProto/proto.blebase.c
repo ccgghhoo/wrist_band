@@ -302,10 +302,10 @@ static int ProtoBLEwb_updateTime(struct objEpbProto *obj, uint8_t key, const uin
 
 static int ProtoBLEwb_FwInfo(struct objEpbProto *obj, uint8_t key, const uint8_t *p_data, uint16_t len)
 {
-    uint8_t temp[128] = {0};
+    uint8_t temp[44] = {0};
      
-    temp[0] = 41;     //len=key_value_len + key_len
-	temp[1] = 0x08;   //key
+    temp[0] = 41;     //len
+	temp[1] = BLE_WB_READ_FW_INFO;   //key
     
     memcpy(&temp[2], (uint8_t *)&appl_info.fw_version, 40/*sizeof(app_info_t)*/);
         
