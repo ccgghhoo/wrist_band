@@ -45,8 +45,13 @@ uint8_t HalSpi0_Xfer(uint8_t byte)
 void HalSpi0_Init(void)
 {
     if (m_is_spi_initialized) return;
+    HalSpi0_Disable();
+    
+    nrf_gpio_cfg_output(SPIM0_MOSI_PIN);
+    nrf_gpio_cfg_output(SPIM0_SCK_PIN);
+    nrf_gpio_cfg_input(SPIM0_MISO_PIN, NRF_GPIO_PIN_PULLUP);
 
-    NRF_SPI0->PSEL.MISO = SPIM0_SS_PIN;
+    NRF_SPI0->PSEL.MISO = SPIM0_MISO_PIN;
     NRF_SPI0->PSEL.MOSI = SPIM0_MOSI_PIN;
     NRF_SPI0->PSEL.SCK	= SPIM0_SCK_PIN;
 
