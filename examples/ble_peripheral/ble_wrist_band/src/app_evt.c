@@ -36,17 +36,32 @@ void app_evt_poll(void)
           ble_sos_key_send();          //event will be cleared only when the central respond to band
       }
       
-      if(RunTime_GetValue()>30 && (m_user_time_senconds&0x01))//
+      if(check_app_evt(APP_EVT_UPDATE_UTC_TIME))
+      {
+          clear_app_evt(APP_EVT_UPDATE_UTC_TIME);
+          ble_utc_time_req_send(); 
+      }
+      
+      if(RunTime_GetValue()>30 && (m_user_time_senconds%5==0))//
       {
           ble_sport_data_send();          
       }
+      
+//      static uint32_t  step_cnt_last=0;
+//      uint32_t step_cnt_curr;
+//      step_cnt_curr=md_app_get_step_counter();
+//      if(step_cnt_curr>step_cnt_last+10)
+//      {
+//          ble_basic_data_send();
+//          step_cnt_last = step_cnt_curr;
+//      }
             
 #ifdef DEGREE
       md_module_period_one_second();
      
       if(m_user_time_senconds%300==0)//300
       {
-          if(1)//(UTC_IsValid())  //时间有效才存储
+          if(UTC_IsValid())  //时间有效才存储
           {
              md_module_period_save();//
           }
@@ -74,7 +89,7 @@ void app_evt_poll(void)
       if(m_user_time_senconds%60==0)
       {
           battery_level_cal();
-          batt_voltage_get();      
+          //batt_voltage_get();      
       }             
       if(batt_state_changed())      
       {       

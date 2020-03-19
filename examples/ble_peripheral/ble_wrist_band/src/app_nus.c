@@ -176,9 +176,14 @@ void app_nus_res_handler(void)
 
 static void app_nus_receive_data_handler(ble_nus_evt_t * p_evt)
 {
-    if (p_evt->type != BLE_NUS_EVT_RX_DATA)return;
-  
+    if(p_evt->type==BLE_NUS_EVT_COMM_STARTED)
+    {
+        set_app_evt(APP_EVT_UPDATE_UTC_TIME);   //ble connected and notify enabled
+        return;
+    }
     
+    if (p_evt->type != BLE_NUS_EVT_RX_DATA)return;
+      
     uint16_t index = 0;
     m_nus_timeout = RunTime_GetValue();
     ble_fast_connection();
@@ -186,7 +191,8 @@ static void app_nus_receive_data_handler(ble_nus_evt_t * p_evt)
     uint8_t length=p_evt->params.rx_data.length;        //
     uint8_t const *p_data = p_evt->params.rx_data.p_data;     //2019/09/15
     
-    //NUS_LOG("[NUS]: bytes in %d \r\n", length);
+    NUS_LOG("[NUS]: bytes in %d", length);
+    NUS_HEX_LOG(p_data, length);
     
     while (index < length)
     {
@@ -205,14 +211,14 @@ static void app_nus_receive_data_handler(ble_nus_evt_t * p_evt)
             break;
         case EPB_STEP_FLAG:
             m_data_req.val =  p_data[index++];
-            if (m_data_req.flag.version != EPB_VER)
-            {
-                m_rx_next_step = EPB_STEP_MAGIC;
-            }
-            else
-            {
+//            if (m_data_req.flag.version != EPB_VER)
+//            {
+//                m_rx_next_step = EPB_STEP_MAGIC;
+//            }
+//            else
+//            {
                 m_rx_next_step = EPB_STEP_LEN_LSB;
-            }
+//            }
             break;
         case EPB_STEP_LEN_LSB:
             m_data_req.len = p_data[index++];
@@ -269,7 +275,7 @@ static void app_nus_receive_data_handler(ble_nus_evt_t * p_evt)
                     remains = m_data_req.len - msg_bytes_received;
                     memcpy(m_data_req.payload + msg_bytes_received, p_data + index, remains);
                     m_rx_next_step = EPB_STEP_COMPLETED;
-                    NUS_LOG("[NUS]:cmd received EPB_STEP_COMPLETED \r\n");
+                    //NUS_LOG("[NUS]:cmd received EPB_STEP_COMPLETED \r\n");
                 }
                 break; }
         case EPB_STEP_COMPLETED: // do nothing, wait for
@@ -347,7 +353,7 @@ bool ble_send_proto_data_pack(uint8_t *data, uint16_t len, uint8_t flag)
 {
     if (BLE_IsConnect() == false)
     {        
-        NUS_LOG("[NUS]:ble disconnected, send data fail!\r\n");
+        //NUS_LOG("[NUS]:ble disconnected, send data fail!\r\n");
         return false;
     }
     
@@ -399,11 +405,35 @@ void ble_sos_key_send(void)
     ble_send_proto_data_pack(databuff, 5, 1);     
 }
 
+
+void ble_basic_data_send(void)
+{
+    uint8_t databuff[16]={0};
+    uint16_t chunk_len = 0;
+
+    databuff[0] = COMMAND_ID_BLE_BASE;
+
+    databuff[1] = 10;
+    databuff[2] = BLE_WB_READ_INFO_DATA;
+    
+    uint32_t temp32 = UTC_GetValue();
+    
+    memcpy(databuff + 3, (uint8_t *)&temp32, 4);
+    chunk_len += 7;
+    
+    temp32 = md_app_get_step_counter();  //get step cnt //chen
+    memcpy(&databuff[chunk_len], (uint8_t *)&temp32, 4);    
+    chunk_len += 4;
+    
+    databuff[chunk_len++] = batt_level_get();
+                 
+    ble_send_proto_data_pack(databuff, chunk_len, 1);  
+}
+
 void ble_utc_time_req_send(void)
 {
     if (BLE_IsConnect() == false)
     {        
-        NUS_LOG("[NUS]:ble disconnected");
         return;
     }
     uint8_t  databuff[8];           
@@ -416,8 +446,7 @@ void ble_utc_time_req_send(void)
 void ble_sport_data_send(void)
 {
     if (BLE_IsConnect() == false)
-    {        
-        NUS_LOG("[NUS]:ble disconnected");
+    {                
         return;
     }
     

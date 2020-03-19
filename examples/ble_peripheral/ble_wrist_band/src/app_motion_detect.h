@@ -49,7 +49,7 @@ typedef struct{
 
 extern   alert_int_en_t   pin_int_en; 
 
-
+#define  WRIST_ROLL_DETECT         1
 
 //#define  EINT2_MOTION_ALERT_PIN    9
 #define  EINT1_MOTION_ALERT_PIN    9

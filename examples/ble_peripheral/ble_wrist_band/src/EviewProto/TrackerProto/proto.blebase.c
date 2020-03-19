@@ -295,7 +295,7 @@ static int ProtoBLEwb_updateTime(struct objEpbProto *obj, uint8_t key, const uin
     DateTime_UTC2DateTime(utc);   
     
     //Proto_RespPositive(objEpbProto_t *obj, uint8_t cmd, uint8_t key)
-    Proto_RespNegative(obj, EPB_SUCCESS);   
+    //Proto_RespNegative(obj, EPB_SUCCESS);   
     
     return EPB_SUCCESS;
 }
