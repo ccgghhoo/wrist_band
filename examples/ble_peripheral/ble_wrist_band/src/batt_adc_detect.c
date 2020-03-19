@@ -13,8 +13,9 @@
 #define  BATT_AN_PIN            NRF_SAADC_INPUT_AIN3
 #define  ADVALUE_TO_MV_RATIO    600*1117/(100*4096)//600*11/4096 //根据电路修正值比例为11.17
 #define MIN_BATTER_ADC  			2013  	//3.3v
-#define MIN_BATTER_ADC_CHARGING     (MIN_BATTER_ADC+50)
+#define MIN_BATTER_ADC_CHARGING     (MIN_BATTER_ADC+50)//3.3+0.05
 #define MAX_BATTER_ADC  			2503  	//4.1v
+#define MAX_BATTER_ADC_CHARGING     (MAX_BATTER_ADC+50)//4.1+0.08
 #define BATT_LOW_POWER_LEVEL        20
 
 #define BIT_MASK_CHARGING           0x01
@@ -26,6 +27,7 @@ typedef struct
 {
     uint16_t adc_value;
     uint8_t  batt_level;
+    uint8_t  batt_level_curr;
     union{
         struct{    
             uint8_t  charging_flag:1;
@@ -163,21 +165,27 @@ uint8_t battery_level_cal(void)
 {
     
     uint32_t  batt_level;
-    uint16_t  min_batt_adc;
+    uint16_t  min_batt_adc ,max_batt_adc;
     static uint8_t   low_power_cnt=0;
     
     int16_t batt_adc_value = batt_adc_value_av_get();
     
+    uint32_t batt_mv = batt_adc_value*ADVALUE_TO_MV_RATIO;
+    NRF_LOG_INFO("batt advalue: %d  ", batt_adc_value);
+    NRF_LOG_INFO("batt mv: %d  ", batt_mv); 
+    
     if(m_battery.charging_flag)
     {
-        min_batt_adc =  MIN_BATTER_ADC_CHARGING;   
+        min_batt_adc =  MIN_BATTER_ADC_CHARGING;
+        max_batt_adc =  MAX_BATTER_ADC_CHARGING;
     }
     else
     {             
         min_batt_adc =  MIN_BATTER_ADC; 
+        max_batt_adc =  MAX_BATTER_ADC;
     }
     
-    if(batt_adc_value>=MAX_BATTER_ADC) 
+    if(batt_adc_value>=max_batt_adc) 
     {
         batt_level = 100;
         if(m_battery.charging_flag)
@@ -191,7 +199,7 @@ uint8_t battery_level_cal(void)
     }
     else
     {     
-        batt_level = (batt_adc_value-min_batt_adc)*100/(MAX_BATTER_ADC-min_batt_adc);
+        batt_level = (batt_adc_value-min_batt_adc)*100/(max_batt_adc-min_batt_adc);
     }
     
     if((m_battery.batt_level-batt_level)>2)
@@ -218,8 +226,10 @@ uint8_t battery_level_cal(void)
         low_power_cnt=0;
         m_battery.batt_low_flag = 0;
     }
+           
+    m_battery.batt_level_curr = batt_level;
     
-    //NRF_LOG_INFO("batt level: %d  ", batt_level); 
+    NRF_LOG_INFO("batt level: %d  ", m_battery.batt_level_curr); 
     
     return batt_level;
 }
@@ -227,7 +237,7 @@ uint8_t battery_level_cal(void)
 
 uint8_t batt_level_get(void)
 {       
-    return  m_battery.batt_level;
+    return  m_battery.batt_level_curr;
 }
 
 bool batt_low_alert_get(void)
@@ -320,7 +330,7 @@ batt_status_t batt_status_get(void)
         {
             if(!(pre_batt_state&BIT_MASK_CHARGING))
             {
-                Indicator_Evt(ALERT_TYPE_IN_CHARGING);  //无限循环
+                Indicator_Evt(ALERT_TYPE_IN_CHARGING);  
             }
             //NRF_LOG_INFO("batt status charging "); 
             ret=  BATT_STATUS_CHARGING;

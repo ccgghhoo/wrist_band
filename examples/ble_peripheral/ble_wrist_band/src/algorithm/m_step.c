@@ -22,7 +22,7 @@
 #define  SPORT_STEP_MIN_TIME           200
 #define  SPORT_RUN_MAX_TIME            366
 #define  SPORT_WALK_MIN_TIME           400
-#define  SPORT_STEP_DIFF1_TIME        1200
+#define  SPORT_STEP_DIFF1_TIME        1200  //changed to 36000 10s
 #define  SPORT_STEP_DIFF2_TIME        1600
 
 #define  GSENSOR_VOLLEY_OVER_VALUE      25

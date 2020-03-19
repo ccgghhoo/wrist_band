@@ -32,7 +32,7 @@
 #include "indicator.h"
 #include "sport_degree_count.h"
 #include "app_fw_info.h"
-
+#include "Pedometer.h"
 
 
 

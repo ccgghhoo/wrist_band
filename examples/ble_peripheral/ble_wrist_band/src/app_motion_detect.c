@@ -20,6 +20,8 @@
 #include "nrf_delay.h"
 #include "batt_adc_detect.h"
 
+#include "app_init.h"
+
 #define SHORT_ABS(x)                            (( ((x) & 0x8000) > 0) ? ((~x) + 1)  : (x) )
 
 #if 1
@@ -82,7 +84,12 @@ void md_app_set_step_counter(uint32_t step_cnt)
 
 uint32_t md_app_get_step_counter(void)
 {
+#if 0
     return md_step_counter_curr ;
+#else
+
+    return PEDO_GetStepCount();
+#endif
 }
 md_t * md_app_get_motion_status(void)
 {
@@ -335,7 +342,7 @@ static void md_mode_change(void)
 
 
 
-
+/*
 static float inv_sqrt(float x)
 {
     float xhalf = 0.5f * x;
@@ -348,7 +355,7 @@ static float inv_sqrt(float x)
 
     return 1 / x;
 }
-
+*/
 
 static bool IsKeeprelative(short *data)
 {
@@ -381,6 +388,146 @@ static bool IsKeeprelative(short *data)
     return 0;
 }
 
+
+#define 	G_SAMPLE_NUM  100  //gsensor sample rate = 100hz/1s
+static bool  w_lift_the_wrist_flag; 
+
+void wrist_roll_handle()
+{
+    if(w_lift_the_wrist_flag)
+    {
+        w_lift_the_wrist_flag = 0;
+        //set_app_evt(APP_EVT_SOS_ALARM);
+        Indicator_Evt(ALERT_TYPE_KEY_CALL);  
+        NRF_LOG_INFO("wrist rolling is detected !!!!")
+    }
+    
+}
+
+void wrist_roll_detect(int16_t x, int16_t y, int16_t z)  //2020/02/29
+{
+	            
+     static uint8_t data_counter=0;
+     static uint8_t taiwan_status =0;
+     static int16_t cal_data_buff, cal_axis_data;
+     static uint8_t j=0, h=0;
+     static bool pre_fanwan_flag=false;
+     static uint8_t pos_num=0, neg_num=0, zero_num=0;
+     static uint8_t last_pos_num=0, last_neg_num=0;
+     static uint8_t fanwan_state=0;
+		
+	 if(w_lift_the_wrist_flag)
+		 return;
+	 
+     
+	 cal_axis_data = x;
+         
+     if(data_counter<G_SAMPLE_NUM)
+     {
+         cal_data_buff = cal_axis_data;			 				 	
+         data_counter++;
+         
+         if(cal_data_buff>0)
+         {
+             pos_num++;
+         }
+         else if(cal_data_buff<0)
+         {
+             neg_num++;
+         }
+         else
+         {
+             zero_num++;
+         }
+         
+         
+         if(!pre_fanwan_flag)
+         {						
+             if(cal_data_buff<=0)//  -  0  +
+             {								
+                 if(j!=0)
+                 {	
+                     h=0;
+                     j=0;
+                 }
+                 else
+                     h++;
+             }
+             else
+             {							
+                 if(h!=0)
+                 {
+                     j++;
+                 }
+             }
+             
+             if(j+h>=40 && h>=16 && j>=15) //50
+             //if(j+h>=60 && h>=30 && j>=24) //100
+             { 
+                 NRF_LOG_INFO("11111111111wrist rolling -= %d += %d", h, j);
+                 pre_fanwan_flag=true;	
+                 
+             }						
+         }
+         
+         if(pre_fanwan_flag)
+         {
+             //NRF_LOG_INFO("333333333333wrist rolling x=%d y=%d z=%d", x, y,z);
+             if(x>100 && abs(y)<80 && z>=100 )
+             {                 
+                 taiwan_status = 1;
+                 fanwan_state |=0x01;
+                 //NRF_LOG_INFO("444444444444444taiwan_status=1");
+             }			
+         }
+         else
+         {
+//             if(last_pos_num>=(G_SAMPLE_NUM-2))
+//             {
+//                 if(j>=(G_SAMPLE_NUM-2) || neg_num>=(G_SAMPLE_NUM-2))//0x01 0x17; 0x02 0x16; 0x00 0x18;
+//                 {
+//                     taiwan_status = 1;
+//                     if(j>=(G_SAMPLE_NUM-2))  
+//                         fanwan_state |=0x02;
+//                     if(neg_num>=(G_SAMPLE_NUM-2))
+//                         fanwan_state |=0x04;
+//                 }
+//						
+//             }						
+         }
+         
+         if(data_counter==G_SAMPLE_NUM)
+         {
+             uint8_t ble_send_buff[6];
+             ble_send_buff[0]=pos_num;   //all larger than zero
+             ble_send_buff[1]=neg_num;		//all less than zero
+             ble_send_buff[2]=zero_num;		//all zero
+             ble_send_buff[3]=h;
+             ble_send_buff[4]=j;
+             ble_send_buff[5]=fanwan_state;	
+             NRF_LOG_HEXDUMP_INFO(ble_send_buff, 6);
+             NRF_LOG_INFO("xyz=%x %x %x", x,y,z);
+             
+             if(taiwan_status)
+             {			
+                 w_lift_the_wrist_flag = 1;
+                 taiwan_status=0;                
+             }
+             
+             data_counter = 0;
+             pre_fanwan_flag=false;
+             h=j=0;
+             last_pos_num=pos_num+zero_num;  
+             fanwan_state=0; 
+             pos_num=neg_num=zero_num=0;
+             
+         }
+     }     
+}
+
+	
+
+
 static void md_algorithm_run(void)
 {    
     if (!md.timeout) return;
@@ -397,6 +544,7 @@ static void md_algorithm_run(void)
       LIS3DH_GetAccAxesRaw(&raw_data[i]); 
       //NRF_LOG_INFO("x=%d y=%d z=%d", raw_data[i].X/16, raw_data[i].Y/16, raw_data[i].Z/16);      
     }
+    //NRF_LOG_HEXDUMP_INFO(raw_data, bytes_in_fifo);
     vector3_t r3;
     
 //#ifdef __SIMPLE_ACC
@@ -423,7 +571,15 @@ static void md_algorithm_run(void)
         md_module_input_gsensor_raw_handle(&r3);
 #endif
         //input the step run.
-        static uint32_t rawcount = 0;
+        
+        
+        if(i%4==0)
+        {
+            pedo_timeout_timer_hdlr(r3.X, r3.Y, r3.Z);
+        }
+
+ /*  
+     static uint32_t rawcount = 0;
         if (++rawcount % 3 == 0)
         {
             AxesRaw_t rawcurrent;
@@ -432,7 +588,7 @@ static void md_algorithm_run(void)
             rawcurrent.Z = r3.Z;
             m_interface_input_gsensor_source_data(rawcurrent);  //step cnt 
         }
-        
+*/        
         state_input_data(r3.X, r3.Y, r3.Z);
         //falldown and tilt check
         bool device_is_activated = false;
@@ -441,9 +597,12 @@ static void md_algorithm_run(void)
         active_value[1] = r3.Y;
         active_value[2] = r3.Z;
         
+#if WRIST_ROLL_DETECT        
+        wrist_roll_detect(r3.X, r3.Y, r3.Z);
+#endif
+        
         device_is_activated = IsKeeprelative(active_value);  //chen --for static or motion detect
         algo_lib_runtime(&r3, device_is_activated);
-
 
 #if 0        
         if (true == tilt_get_switch())
@@ -491,6 +650,11 @@ void md_process(void)
     md_mode_change();
     md_algorithm_run();
     md_timeout_check();
+    
+#if WRIST_ROLL_DETECT        
+    wrist_roll_handle();    
+#endif    
+        
 }
 
 
@@ -592,6 +756,7 @@ void md_init(void)
     md.wakeup = true;
     md.workmode = false;
  
+    Drv_PEDO_Customer_Initial();
     
 //    dev_config_value_change(DEV_UPDATE_ALERT_MOTION);
 //    dev_config_value_change(DEV_UPDATE_ALERT_STATIC);

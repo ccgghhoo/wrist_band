@@ -103,7 +103,7 @@ extern "C" {
 #define LIS3DH_INT2_PIN     18
 #define LIS3DH_INT1_PIN     21
 #define MOTOR_PIN           24 
-#define USB_CHARG_IND_PIN   30//8
+#define USB_CHARG_IND_PIN   8
 #define CHARG_EN_PIN        6 
 #define BATT_ADC_PIN        5  
   
@@ -204,4 +204,4 @@ extern "C" {
 }
 #endif
 
-#endif // PCA10040_H
+#endif 

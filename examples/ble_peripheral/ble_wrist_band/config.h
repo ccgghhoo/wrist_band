@@ -29,6 +29,7 @@
 #endif
 
 #define  DEGREE  1
+
 #define  TILT_VERTICAL_ACCEL_S        TILT_VERTICAL_ACCEL_POINT_X
   
 #ifndef DEV_VERSION

@@ -397,7 +397,7 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             //Indicator_Evt(ALERT_TYPE_BLE_ADV_END);            
             m_conn_handle = p_ble_evt->evt.gap_evt.conn_handle;            
             update_adv_data();
-                       
+            //set_app_evt(APP_EVT_UPDATE_UTC_TIME);           
             break;
 
         case BLE_GAP_EVT_PHY_UPDATE_REQUEST:
@@ -520,6 +520,8 @@ static void bsp_event_handler(bsp_event_t event)
 
         case BSP_EVENT_SOS:
             Indicator_Evt(ALERT_TYPE_KEY_PRESS);
+            Indicator_Evt(ALERT_BUTTON_LONG_HOLD); //motor work
+            //Indicator_Evt(ALERT_TYPE_TEST);
             set_app_evt(APP_EVT_SOS_ALARM);
             NRF_LOG_INFO("button pressed long time, SOS!!");
                 
