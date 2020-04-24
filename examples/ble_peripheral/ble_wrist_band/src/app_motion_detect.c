@@ -409,21 +409,133 @@ void wrist_roll_detect(int16_t x, int16_t y, int16_t z)  //2020/02/29
 	            
      static uint8_t data_counter=0;
      static uint8_t taiwan_status =0;
-     static int16_t cal_data_buff, cal_axis_data;
+     static int16_t cal_data_buff, cal_axis_data, z_min=512, z_max=-512;
      static uint8_t j=0, h=0;
      static bool pre_fanwan_flag=false;
      static uint8_t pos_num=0, neg_num=0, zero_num=0;
      static uint8_t last_pos_num=0, last_neg_num=0;
-     static uint8_t fanwan_state=0;
+     static uint8_t fanwan_state=0;        
 		
 	 if(w_lift_the_wrist_flag)
 		 return;
-	 
      
-	 cal_axis_data = x;
+#if 1 
+#define POS_SAMPLE_NUM  50     
+     cal_axis_data = x;
+     if((fanwan_state&0x01)==0)
+     {
+         if(cal_axis_data<=10)
+         {
+             if(++data_counter>=200)
+             {
+//                 fanwan_state |=0x01;
+                 data_counter = 200;
+             }
+         }
+         else
+         {
+             if(data_counter>=20)
+             {
+                 fanwan_state |=0x01;
+                 data_counter = 0;
+             }
+             else 
+             {
+                 if(data_counter)
+                    data_counter--;
+             }
+         }
+         return;
+     }
+     
+     
+     if(data_counter<POS_SAMPLE_NUM)
+     {
+         cal_data_buff = cal_axis_data;			 				 	
+         data_counter++;
          
+         if(cal_data_buff>10)
+         {
+             pos_num++;
+         }
+         else if(cal_data_buff<0)
+         {
+             neg_num++;
+         }
+         else
+         {
+             zero_num++;
+         }
+         
+         if(cal_axis_data>z_max)
+         {
+             z_max=cal_axis_data;
+         }
+         if(cal_axis_data<z_min)
+         {
+             z_min=cal_axis_data;
+         }
+         
+         if(!pre_fanwan_flag)
+         {
+             if(pos_num>POS_SAMPLE_NUM-10)
+             {
+                 pre_fanwan_flag=true;
+             }
+         }
+         
+         if(pre_fanwan_flag)
+         {
+             NRF_LOG_INFO("xyz=%d %d %d", x,y,z);
+             if(cal_axis_data>100 && abs(y)<150 && z>=100 )
+             {                 
+                 taiwan_status = 1;
+                 data_counter=POS_SAMPLE_NUM;
+             }			
+         }
+         
+         if(data_counter==POS_SAMPLE_NUM)
+         {
+             NRF_LOG_INFO("xyz=%d %d %d", x,y,z);
+             
+             if(taiwan_status)
+             {			
+                 w_lift_the_wrist_flag = 1;
+                 taiwan_status=0;                  
+             }
+
+             NRF_LOG_INFO("roll detect complete!!! h= %d j= %d pos= %d neg= %d", h, j, pos_num ,neg_num); 
+                            
+             data_counter = 0;
+             pre_fanwan_flag=false;
+             h=j=0;
+             last_pos_num=pos_num+zero_num;  
+             fanwan_state=0; 
+             pos_num=neg_num=zero_num=0;
+             
+         }
+     }         
+                  
+#else     
+	 if(data_counter==0 && x>=0) //      
+         return;
+     if(data_counter==0)
+     {
+        z_min=512; z_max=-512; 
+     }
+	 
+     cal_axis_data = x;   
      if(data_counter<G_SAMPLE_NUM)
      {
+         if(z>z_max)
+         {
+             z_max=z;
+         }
+         if(z<z_min)
+         {
+             z_min=z;
+         }
+         
          cal_data_buff = cal_axis_data;			 				 	
          data_counter++;
          
@@ -461,23 +573,35 @@ void wrist_roll_detect(int16_t x, int16_t y, int16_t z)  //2020/02/29
                  }
              }
              
-             if(j+h>=40 && h>=16 && j>=15) //50
+             if((j+h>=40 && h>=10 && j>=15) /*|| z_max-z_min>400*/) //50
              //if(j+h>=60 && h>=30 && j>=24) //100
              { 
-                 NRF_LOG_INFO("11111111111wrist rolling -= %d += %d", h, j);
+                 NRF_LOG_INFO("prepare wrist rolling -= %d += %d", h, j);
                  pre_fanwan_flag=true;	
                  
-             }						
+             }
+             /*
+             if(data_counter>=G_SAMPLE_NUM-5)
+             {
+                NRF_LOG_INFO("z_max-z_min=%d", z_max-z_min); 
+                if(z_max-z_min>200)
+                {
+                    NRF_LOG_INFO("prepare lift wrist !!!!!!!!!!!");
+                    pre_fanwan_flag=true;
+                }
+             }*/
+             
          }
          
          if(pre_fanwan_flag)
          {
-             //NRF_LOG_INFO("333333333333wrist rolling x=%d y=%d z=%d", x, y,z);
-             if(x>100 && abs(y)<80 && z>=100 )
+             NRF_LOG_INFO("xyz=%d %d %d", x,y,z);
+             if(cal_axis_data>100 && abs(y)<150 && z>=100 )
              {                 
                  taiwan_status = 1;
                  fanwan_state |=0x01;
-                 //NRF_LOG_INFO("444444444444444taiwan_status=1");
+                 data_counter=G_SAMPLE_NUM;
+                 //NRF_LOG_INFO("wrist rolling detectec!!!!!!");
              }			
          }
          else
@@ -505,13 +629,18 @@ void wrist_roll_detect(int16_t x, int16_t y, int16_t z)  //2020/02/29
              ble_send_buff[3]=h;
              ble_send_buff[4]=j;
              ble_send_buff[5]=fanwan_state;	
-             NRF_LOG_HEXDUMP_INFO(ble_send_buff, 6);
-             NRF_LOG_INFO("xyz=%x %x %x", x,y,z);
+//             NRF_LOG_HEXDUMP_INFO(ble_send_buff, 6);
+             NRF_LOG_INFO("xyz=%d %d %d", x,y,z);
              
              if(taiwan_status)
              {			
                  w_lift_the_wrist_flag = 1;
                  taiwan_status=0;                
+             }
+             else
+             {
+                NRF_LOG_INFO("roll not detect !!! h= %d j= %d pos= %d neg= %d", h, j, pos_num ,neg_num); 
+                
              }
              
              data_counter = 0;
@@ -522,7 +651,8 @@ void wrist_roll_detect(int16_t x, int16_t y, int16_t z)  //2020/02/29
              pos_num=neg_num=zero_num=0;
              
          }
-     }     
+     }
+#endif     
 }
 
 	
